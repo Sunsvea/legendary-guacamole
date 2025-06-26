@@ -1,6 +1,7 @@
 'use client';
 
 import { RoutePoint } from '@/types/route';
+import { useState, useEffect } from 'react';
 
 interface RouteMapProps {
   points: RoutePoint[];
@@ -8,6 +9,8 @@ interface RouteMapProps {
 }
 
 export function RouteMap({ points, className = '' }: RouteMapProps) {
+  const [mapImageUrl, setMapImageUrl] = useState<string>('');
+  
   if (!points || points.length === 0) {
     return null;
   }
@@ -31,8 +34,15 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
   const mapHeight = 400;
   const padding = 40;
 
-  const getX = (lng: number) => padding + ((lng - minLng) / lngRange) * (mapWidth - 2 * padding);
-  const getY = (lat: number) => mapHeight - padding - ((lat - minLat) / latRange) * (mapHeight - 2 * padding);
+  // Add some padding to the bounds for better visualization
+  const boundsPadding = 0.001;
+  const boundsMinLat = minLat - boundsPadding;
+  const boundsMaxLat = maxLat + boundsPadding;
+  const boundsMinLng = minLng - boundsPadding;
+  const boundsMaxLng = maxLng + boundsPadding;
+
+  const getX = (lng: number) => padding + ((lng - boundsMinLng) / (boundsMaxLng - boundsMinLng)) * (mapWidth - 2 * padding);
+  const getY = (lat: number) => mapHeight - padding - ((lat - boundsMinLat) / (boundsMaxLat - boundsMinLat)) * (mapHeight - 2 * padding);
   
   const getElevationColor = (elevation: number) => {
     const normalized = (elevation - minElevation) / elevationRange;
@@ -43,80 +53,25 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
     return '#dc2626'; // High elevation - red
   };
 
-  const pathData = points
-    .map((point, index) => {
-      const x = getX(point.lng);
-      const y = getY(point.lat);
-      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
-    })
-    .join(' ');
+  // Generate map background using simple satellite imagery approach
+  useEffect(() => {
+    const centerLat = (minLat + maxLat) / 2;
+    const centerLng = (minLng + maxLng) / 2;
+    
+    // Calculate appropriate zoom level
+    const latDiff = maxLat - minLat;
+    const lngDiff = maxLng - minLng;
+    const maxDiff = Math.max(latDiff, lngDiff);
+    let zoom = 12;
+    if (maxDiff > 0.1) zoom = 9;
+    else if (maxDiff > 0.05) zoom = 10;
+    else if (maxDiff > 0.02) zoom = 11;
+    else if (maxDiff > 0.01) zoom = 12;
+    else if (maxDiff > 0.005) zoom = 13;
 
-  // Create topographical background using elevation zones
-  const backgroundZones = [];
-  const gridSize = 20;
-  for (let i = 0; i < gridSize; i++) {
-    for (let j = 0; j < gridSize; j++) {
-      const lat = minLat + (i / gridSize) * latRange;
-      const lng = minLng + (j / gridSize) * lngRange;
-      
-      // Simulate elevation based on distance from route for visual effect
-      const closestPoint = points.reduce((closest, point) => {
-        const distance = Math.sqrt(
-          Math.pow(point.lat - lat, 2) + Math.pow(point.lng - lng, 2)
-        );
-        return distance < closest.distance ? { point, distance } : closest;
-      }, { distance: Infinity, point: points[0] });
-      
-      const simulatedElevation = closestPoint.point.elevation + 
-        (Math.random() - 0.5) * 200 * closestPoint.distance * 1000;
-      
-      const x = getX(lng);
-      const y = getY(lat);
-      const size = (mapWidth - 2 * padding) / gridSize;
-      
-      backgroundZones.push(
-        <rect
-          key={`zone-${i}-${j}`}
-          x={x - size/2}
-          y={y - size/2}
-          width={size}
-          height={size}
-          fill={getElevationColor(simulatedElevation)}
-          opacity="0.15"
-        />
-      );
-    }
-  }
-
-  // Create contour-like lines
-  const contourLines = [];
-  for (let i = 1; i <= 4; i++) {
-    const elevationLevel = minElevation + (i / 5) * elevationRange;
-    contourLines.push(
-      <g key={`contour-${i}`}>
-        {points.map((point, index) => {
-          if (index === 0) return null;
-          const prevPoint = points[index - 1];
-          if (
-            (prevPoint.elevation <= elevationLevel && point.elevation >= elevationLevel) ||
-            (prevPoint.elevation >= elevationLevel && point.elevation <= elevationLevel)
-          ) {
-            return (
-              <circle
-                key={`contour-point-${index}`}
-                cx={getX(point.lng)}
-                cy={getY(point.lat)}
-                r="1"
-                fill="#94a3b8"
-                opacity="0.6"
-              />
-            );
-          }
-          return null;
-        })}
-      </g>
-    );
-  }
+    // Use a simple background pattern instead of external API for now
+    setMapImageUrl('');
+  }, [points, minLat, maxLat, minLng, maxLng]);
 
   return (
     <div className={`bg-white rounded-lg shadow-md p-6 ${className}`}>
@@ -128,16 +83,56 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
       </div>
       
       <div className="overflow-x-auto">
-        <svg width={mapWidth} height={mapHeight} className="w-full border border-gray-200 rounded">
-          <rect width={mapWidth} height={mapHeight} fill="#f8fafc" />
+        <svg width={mapWidth} height={mapHeight} className="w-full border border-gray-200 rounded bg-gradient-to-br from-green-100 via-yellow-50 to-orange-100">
           
-          {/* Topographical background */}
-          {backgroundZones}
+          {/* Clean terrain-inspired background */}
+          <defs>
+            <linearGradient id="terrainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#22c55e" stopOpacity="0.1" />
+              <stop offset="30%" stopColor="#84cc16" stopOpacity="0.1" />
+              <stop offset="60%" stopColor="#eab308" stopOpacity="0.1" />
+              <stop offset="80%" stopColor="#f97316" stopOpacity="0.1" />
+              <stop offset="100%" stopColor="#dc2626" stopOpacity="0.1" />
+            </linearGradient>
+            
+            <pattern id="topographicLines" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+              <circle cx="20" cy="20" r="15" fill="none" stroke="#94a3b8" strokeWidth="0.5" opacity="0.3"/>
+              <circle cx="20" cy="20" r="8" fill="none" stroke="#94a3b8" strokeWidth="0.5" opacity="0.2"/>
+            </pattern>
+          </defs>
           
-          {/* Contour lines */}
-          {contourLines}
+          <rect width={mapWidth} height={mapHeight} fill="url(#terrainGradient)" />
+          <rect width={mapWidth} height={mapHeight} fill="url(#topographicLines)" />
           
-          {/* Elevation-based route coloring */}
+          {/* Grid lines for reference */}
+          {[...Array(5)].map((_, i) => {
+            const x = padding + (i / 4) * (mapWidth - 2 * padding);
+            const y = padding + (i / 4) * (mapHeight - 2 * padding);
+            return (
+              <g key={`grid-${i}`}>
+                <line x1={x} y1={padding} x2={x} y2={mapHeight - padding} stroke="#e5e7eb" strokeWidth="1" opacity="0.5" />
+                <line x1={padding} y1={y} x2={mapWidth - padding} y2={y} stroke="#e5e7eb" strokeWidth="1" opacity="0.5" />
+              </g>
+            );
+          })}
+          
+          {/* Main route path */}
+          <path
+            d={points.map((point, index) => {
+              const x = getX(point.lng);
+              const y = getY(point.lat);
+              return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+            }).join(' ')}
+            fill="none"
+            stroke="#dc2626"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeDasharray="0"
+            className="drop-shadow-lg"
+          />
+          
+          {/* Elevation-based route segments */}
           {points.map((point, index) => {
             if (index === 0) return null;
             const prevPoint = points[index - 1];
@@ -154,16 +149,16 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
                 x2={x2}
                 y2={y2}
                 stroke={getElevationColor(point.elevation)}
-                strokeWidth="4"
+                strokeWidth="6"
                 strokeLinecap="round"
-                className="drop-shadow-sm"
+                opacity="0.8"
               />
             );
           })}
           
           {/* Route waypoints */}
           {points.map((point, index) => {
-            if (index % Math.ceil(points.length / 8) !== 0 && index !== 0 && index !== points.length - 1) {
+            if (index % Math.ceil(points.length / 6) !== 0 && index !== 0 && index !== points.length - 1) {
               return null;
             }
             
@@ -172,8 +167,10 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
                 key={`waypoint-${index}`}
                 cx={getX(point.lng)}
                 cy={getY(point.lat)}
-                r="2"
+                r="3"
                 fill="#1f2937"
+                stroke="#fff"
+                strokeWidth="1"
                 className="drop-shadow-sm"
               />
             );
