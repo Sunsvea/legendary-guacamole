@@ -8,8 +8,16 @@ interface RouteMapProps {
   className?: string;
 }
 
+// Helper function to convert lat/lng to tile coordinates
+function deg2tile(lat: number, lng: number, zoom: number) {
+  const latRad = lat * Math.PI / 180;
+  const x = Math.floor((lng + 180) / 360 * Math.pow(2, zoom));
+  const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * Math.pow(2, zoom));
+  return { x, y };
+}
+
 export function RouteMap({ points, className = '' }: RouteMapProps) {
-  const [mapImageUrl, setMapImageUrl] = useState<string>('');
+  const [tiles, setTiles] = useState<Array<{x: number, y: number, url: string, left: number, top: number}>>([]);
   
   if (!points || points.length === 0) {
     return null;
@@ -32,46 +40,68 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
   
   const mapWidth = 600;
   const mapHeight = 400;
-  const padding = 40;
+  const padding = 20;
 
-  // Add some padding to the bounds for better visualization
-  const boundsPadding = 0.001;
+  // Add padding to bounds
+  const boundsPadding = Math.max(latRange, lngRange) * 0.1;
   const boundsMinLat = minLat - boundsPadding;
   const boundsMaxLat = maxLat + boundsPadding;
   const boundsMinLng = minLng - boundsPadding;
   const boundsMaxLng = maxLng + boundsPadding;
+
+  // Calculate zoom level
+  const latDiff = boundsMaxLat - boundsMinLat;
+  const lngDiff = boundsMaxLng - boundsMinLng;
+  const maxDiff = Math.max(latDiff, lngDiff);
+  let zoom = 10;
+  if (maxDiff > 0.5) zoom = 7;
+  else if (maxDiff > 0.2) zoom = 8;
+  else if (maxDiff > 0.1) zoom = 9;
+  else if (maxDiff > 0.05) zoom = 10;
+  else if (maxDiff > 0.02) zoom = 11;
+  else if (maxDiff > 0.01) zoom = 12;
+  else zoom = 13;
 
   const getX = (lng: number) => padding + ((lng - boundsMinLng) / (boundsMaxLng - boundsMinLng)) * (mapWidth - 2 * padding);
   const getY = (lat: number) => mapHeight - padding - ((lat - boundsMinLat) / (boundsMaxLat - boundsMinLat)) * (mapHeight - 2 * padding);
   
   const getElevationColor = (elevation: number) => {
     const normalized = (elevation - minElevation) / elevationRange;
-    if (normalized < 0.2) return '#22c55e'; // Low elevation - green
-    if (normalized < 0.4) return '#84cc16'; // Medium-low - lime  
-    if (normalized < 0.6) return '#eab308'; // Medium - yellow
-    if (normalized < 0.8) return '#f97316'; // Medium-high - orange
-    return '#dc2626'; // High elevation - red
+    if (normalized < 0.2) return '#22c55e';
+    if (normalized < 0.4) return '#84cc16';
+    if (normalized < 0.6) return '#eab308';
+    if (normalized < 0.8) return '#f97316';
+    return '#dc2626';
   };
 
-  // Generate map background using simple satellite imagery approach
+  // Load terrain tiles
   useEffect(() => {
-    const centerLat = (minLat + maxLat) / 2;
-    const centerLng = (minLng + maxLng) / 2;
+    const minTile = deg2tile(boundsMaxLat, boundsMinLng, zoom);
+    const maxTile = deg2tile(boundsMinLat, boundsMaxLng, zoom);
     
-    // Calculate appropriate zoom level
-    const latDiff = maxLat - minLat;
-    const lngDiff = maxLng - minLng;
-    const maxDiff = Math.max(latDiff, lngDiff);
-    let zoom = 12;
-    if (maxDiff > 0.1) zoom = 9;
-    else if (maxDiff > 0.05) zoom = 10;
-    else if (maxDiff > 0.02) zoom = 11;
-    else if (maxDiff > 0.01) zoom = 12;
-    else if (maxDiff > 0.005) zoom = 13;
-
-    // Use a simple background pattern instead of external API for now
-    setMapImageUrl('');
-  }, [points, minLat, maxLat, minLng, maxLng]);
+    const tileList = [];
+    const tileSize = 256;
+    
+    for (let x = minTile.x; x <= maxTile.x; x++) {
+      for (let y = minTile.y; y <= maxTile.y; y++) {
+        const tileLeft = ((x - minTile.x) * tileSize);
+        const tileTop = ((y - minTile.y) * tileSize);
+        
+        // Using OpenTopoMap tiles
+        const url = `https://tile.opentopomap.org/${zoom}/${x}/${y}.png`;
+        
+        tileList.push({
+          x,
+          y,
+          url,
+          left: tileLeft,
+          top: tileTop
+        });
+      }
+    }
+    
+    setTiles(tileList);
+  }, [boundsMinLat, boundsMaxLat, boundsMinLng, boundsMaxLng, zoom]);
 
   return (
     <div className={`bg-white rounded-lg shadow-md p-6 ${className}`}>
@@ -82,104 +112,125 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
         </div>
       </div>
       
-      <div className="overflow-x-auto">
-        <svg width={mapWidth} height={mapHeight} className="w-full border border-gray-300 rounded">
+      <div className="overflow-hidden rounded border border-gray-300 relative">
+        <div 
+          className="relative bg-gray-100"
+          style={{ width: mapWidth, height: mapHeight }}
+        >
+          {/* Terrain tile background */}
+          {tiles.map((tile) => (
+            <img
+              key={`tile-${tile.x}-${tile.y}`}
+              src={tile.url}
+              alt="Terrain"
+              className="absolute"
+              style={{
+                left: tile.left,
+                top: tile.top,
+                width: 256,
+                height: 256,
+                opacity: 0.8
+              }}
+              onError={(e) => {
+                // Hide broken tiles
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          ))}
           
-          {/* Simple clean background */}
-          <rect width={mapWidth} height={mapHeight} fill="#f8fafc" />
-          
-          {/* Subtle grid */}
-          {[...Array(11)].map((_, i) => {
-            const x = padding + (i / 10) * (mapWidth - 2 * padding);
-            const y = padding + (i / 10) * (mapHeight - 2 * padding);
-            return (
-              <g key={`grid-${i}`}>
-                <line x1={x} y1={padding} x2={x} y2={mapHeight - padding} stroke="#e2e8f0" strokeWidth="1" opacity="0.5" />
-                <line x1={padding} y1={y} x2={mapWidth - padding} y2={y} stroke="#e2e8f0" strokeWidth="1" opacity="0.5" />
-              </g>
-            );
-          })}
-          
-          {/* Route path with elevation coloring */}
-          {points.map((point, index) => {
-            if (index === 0) return null;
-            const prevPoint = points[index - 1];
-            const x1 = getX(prevPoint.lng);
-            const y1 = getY(prevPoint.lat);
-            const x2 = getX(point.lng);
-            const y2 = getY(point.lat);
-            
-            return (
-              <line
-                key={`route-segment-${index}`}
-                x1={x1}
-                y1={y1}
-                x2={x2}
-                y2={y2}
-                stroke={getElevationColor(point.elevation)}
-                strokeWidth="5"
-                strokeLinecap="round"
-              />
-            );
-          })}
-          
-          {/* Route waypoints */}
-          {points.map((point, index) => {
-            if (index % Math.ceil(points.length / 8) !== 0 && index !== 0 && index !== points.length - 1) {
-              return null;
-            }
-            
-            return (
-              <circle
-                key={`waypoint-${index}`}
-                cx={getX(point.lng)}
-                cy={getY(point.lat)}
-                r="2"
-                fill="#374151"
-                stroke="#fff"
-                strokeWidth="1"
-              />
-            );
-          })}
-          
-          <circle
-            cx={getX(points[0].lng)}
-            cy={getY(points[0].lat)}
-            r="6"
-            fill="#22c55e"
-            stroke="#fff"
-            strokeWidth="2"
-            className="drop-shadow-sm"
-          />
-          
-          <circle
-            cx={getX(points[points.length - 1].lng)}
-            cy={getY(points[points.length - 1].lat)}
-            r="6"
-            fill="#ef4444"
-            stroke="#fff"
-            strokeWidth="2"
-            className="drop-shadow-sm"
-          />
-          
-          <text
-            x={getX(points[0].lng)}
-            y={getY(points[0].lat) - 12}
-            textAnchor="middle"
-            className="text-xs font-semibold fill-green-600"
+          {/* SVG overlay for route */}
+          <svg 
+            width={mapWidth} 
+            height={mapHeight} 
+            className="absolute inset-0"
+            style={{ pointerEvents: 'none' }}
           >
-            START
-          </text>
+            {/* Route path with elevation coloring */}
+            {points.map((point, index) => {
+              if (index === 0) return null;
+              const prevPoint = points[index - 1];
+              const x1 = getX(prevPoint.lng);
+              const y1 = getY(prevPoint.lat);
+              const x2 = getX(point.lng);
+              const y2 = getY(point.lat);
+              
+              return (
+                <line
+                  key={`route-segment-${index}`}
+                  x1={x1}
+                  y1={y1}
+                  x2={x2}
+                  y2={y2}
+                  stroke={getElevationColor(point.elevation)}
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                  opacity="0.9"
+                  style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.3))' }}
+                />
+              );
+            })}
+            
+            {/* Route waypoints */}
+            {points.map((point, index) => {
+              if (index % Math.ceil(points.length / 6) !== 0 && index !== 0 && index !== points.length - 1) {
+                return null;
+              }
+              
+              return (
+                <circle
+                  key={`waypoint-${index}`}
+                  cx={getX(point.lng)}
+                  cy={getY(point.lat)}
+                  r="3"
+                  fill="#374151"
+                  stroke="#fff"
+                  strokeWidth="2"
+                  style={{ filter: 'drop-shadow(1px 1px 2px rgba(0,0,0,0.3))' }}
+                />
+              );
+            })}
           
-          <text
-            x={getX(points[points.length - 1].lng)}
-            y={getY(points[points.length - 1].lat) - 12}
-            textAnchor="middle"
-            className="text-xs font-semibold fill-red-600"
-          >
-            END
-          </text>
-        </svg>
+            <circle
+              cx={getX(points[0].lng)}
+              cy={getY(points[0].lat)}
+              r="8"
+              fill="#22c55e"
+              stroke="#fff"
+              strokeWidth="3"
+              style={{ filter: 'drop-shadow(1px 1px 3px rgba(0,0,0,0.5))' }}
+            />
+            
+            <circle
+              cx={getX(points[points.length - 1].lng)}
+              cy={getY(points[points.length - 1].lat)}
+              r="8"
+              fill="#ef4444"
+              stroke="#fff"
+              strokeWidth="3"
+              style={{ filter: 'drop-shadow(1px 1px 3px rgba(0,0,0,0.5))' }}
+            />
+            
+            <text
+              x={getX(points[0].lng)}
+              y={getY(points[0].lat) - 15}
+              textAnchor="middle"
+              className="text-sm font-bold fill-green-600"
+              style={{ filter: 'drop-shadow(1px 1px 2px rgba(255,255,255,0.8))' }}
+            >
+              START
+            </text>
+            
+            <text
+              x={getX(points[points.length - 1].lng)}
+              y={getY(points[points.length - 1].lat) - 15}
+              textAnchor="middle"
+              className="text-sm font-bold fill-red-600"
+              style={{ filter: 'drop-shadow(1px 1px 2px rgba(255,255,255,0.8))' }}
+            >
+              END
+            </text>
+          </svg>
+        </div>
       </div>
       
       <div className="mt-4 space-y-4">
