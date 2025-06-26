@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Header } from '@/components/layouts/header';
 import { RouteInputForm } from '@/components/forms/route-input-form';
 import { Coordinate, Route } from '@/types/route';
+import { findOptimalRoute } from '@/lib/algorithms/pathfinding';
+import { calculateDistance, calculateElevationGain } from '@/lib/utils';
 
 export default function Home() {
   const [currentRoute, setCurrentRoute] = useState<Route | null>(null);
@@ -14,28 +16,47 @@ export default function Home() {
     try {
       console.log('Planning route from:', start, 'to:', end);
       
-      // TODO: Implement actual route calculation
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const routePoints = await findOptimalRoute(start, end);
       
-      // Mock route for now
-      const mockRoute: Route = {
-        id: 'mock-route-1',
-        name: 'Alpine Route',
+      if (routePoints.length === 0) {
+        throw new Error('No route found');
+      }
+
+      const distance = routePoints.reduce((total, point, index) => {
+        if (index === 0) return 0;
+        return total + calculateDistance(routePoints[index - 1], point);
+      }, 0);
+
+      const elevationGain = calculateElevationGain(routePoints);
+      
+      const getDifficulty = (distance: number, elevationGain: number) => {
+        const difficultyScore = distance + (elevationGain / 100);
+        if (difficultyScore < 5) return 'easy';
+        if (difficultyScore < 15) return 'moderate';
+        if (difficultyScore < 25) return 'hard';
+        return 'extreme';
+      };
+
+      const estimateTime = (distance: number, elevationGain: number) => {
+        const baseTime = distance / 3;
+        const elevationTime = elevationGain / 300;
+        return Math.round(baseTime + elevationTime);
+      };
+
+      const route: Route = {
+        id: `route-${Date.now()}`,
+        name: 'Optimized Alpine Route',
         start,
         end,
-        points: [
-          { ...start, elevation: 1200 },
-          { lat: (start.lat + end.lat) / 2, lng: (start.lng + end.lng) / 2, elevation: 2100 },
-          { ...end, elevation: 1800 }
-        ],
-        distance: 12.5,
-        elevationGain: 900,
-        difficulty: 'moderate',
-        estimatedTime: 6,
+        points: routePoints,
+        distance: Math.round(distance * 10) / 10,
+        elevationGain: Math.round(elevationGain),
+        difficulty: getDifficulty(distance, elevationGain),
+        estimatedTime: estimateTime(distance, elevationGain),
         createdAt: new Date()
       };
       
-      setCurrentRoute(mockRoute);
+      setCurrentRoute(route);
     } catch (error) {
       console.error('Error planning route:', error);
       alert('Error planning route. Please try again.');
