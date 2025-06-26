@@ -140,18 +140,33 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
       </div>
       
       <div className="overflow-hidden rounded border border-gray-300">
-        <svg width={mapWidth} height={mapHeight} className="w-full bg-gradient-to-br from-slate-100 to-slate-200">
+        <svg width={mapWidth} height={mapHeight} className="w-full">
           
-          {/* Clean terrain-inspired background */}
+          {/* Terrain-inspired background */}
           <defs>
-            <pattern id="terrainPattern" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-              <circle cx="30" cy="30" r="20" fill="none" stroke="#cbd5e1" strokeWidth="0.5" opacity="0.3"/>
-              <circle cx="30" cy="30" r="10" fill="none" stroke="#cbd5e1" strokeWidth="0.5" opacity="0.2"/>
-              <path d="M10,30 Q30,10 50,30 Q30,50 10,30" fill="none" stroke="#94a3b8" strokeWidth="0.3" opacity="0.4"/>
+            <linearGradient id="terrainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#f1f5f9" />
+              <stop offset="30%" stopColor="#e2e8f0" />
+              <stop offset="70%" stopColor="#cbd5e1" />
+              <stop offset="100%" stopColor="#94a3b8" />
+            </linearGradient>
+            
+            <pattern id="topoLines" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+              <circle cx="40" cy="40" r="35" fill="none" stroke="#64748b" strokeWidth="1" opacity="0.15"/>
+              <circle cx="40" cy="40" r="25" fill="none" stroke="#64748b" strokeWidth="0.8" opacity="0.2"/>
+              <circle cx="40" cy="40" r="15" fill="none" stroke="#64748b" strokeWidth="0.6" opacity="0.25"/>
+              <circle cx="40" cy="40" r="8" fill="none" stroke="#64748b" strokeWidth="0.4" opacity="0.3"/>
+            </pattern>
+            
+            <pattern id="contourLines" x="0" y="0" width="120" height="40" patternUnits="userSpaceOnUse">
+              <path d="M0,20 Q30,10 60,20 T120,20" fill="none" stroke="#475569" strokeWidth="0.5" opacity="0.2"/>
+              <path d="M0,30 Q30,25 60,30 T120,30" fill="none" stroke="#475569" strokeWidth="0.3" opacity="0.15"/>
             </pattern>
           </defs>
           
-          <rect width={mapWidth} height={mapHeight} fill="url(#terrainPattern)" />
+          <rect width={mapWidth} height={mapHeight} fill="url(#terrainGradient)" />
+          <rect width={mapWidth} height={mapHeight} fill="url(#topoLines)" />
+          <rect width={mapWidth} height={mapHeight} fill="url(#contourLines)" />
           
           {/* Subtle grid */}
           {[...Array(9)].map((_, i) => {
