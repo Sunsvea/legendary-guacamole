@@ -1,7 +1,10 @@
 'use client';
 
 import { RoutePoint } from '@/types/route';
-import { formatElevation, formatDistance } from '@/lib/utils';
+import { formatElevation } from '@/lib/utils';
+import { UI_TEXT } from '@/constants/ui-text';
+import { STYLES } from '@/constants/styles';
+import { COLORS } from '@/constants/colors';
 
 interface ElevationChartProps {
   points: RoutePoint[];
@@ -58,13 +61,13 @@ export function ElevationChart({ points, className = '' }: ElevationChartProps) 
   }
 
   return (
-    <div className={`bg-white rounded-lg shadow-md p-6 ${className}`}>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Elevation Profile</h3>
-        <div className="flex items-center space-x-4 text-sm text-gray-600">
-          <span>Max: {formatElevation(maxElevation)}</span>
-          <span>Min: {formatElevation(minElevation)}</span>
-          <span>Range: {formatElevation(elevationRange)}</span>
+    <div className={`${STYLES.CARD} ${className || ''}`}>
+      <div className={`${STYLES.FLEX_BETWEEN} mb-4`}>
+        <h3 className={STYLES.HEADING_LG}>{UI_TEXT.ELEVATION_PROFILE}</h3>
+        <div className={`${STYLES.FLEX_ITEMS_CENTER} ${STYLES.SPACE_X_4} ${STYLES.TEXT_SM_GRAY}`}>
+          <span>{UI_TEXT.MAX_ELEVATION} {formatElevation(maxElevation)}</span>
+          <span>{UI_TEXT.MIN_ELEVATION} {formatElevation(minElevation)}</span>
+          <span>{UI_TEXT.ELEVATION_RANGE} {formatElevation(elevationRange)}</span>
         </div>
       </div>
       
@@ -116,7 +119,7 @@ export function ElevationChart({ points, className = '' }: ElevationChartProps) 
                   textAnchor="middle"
                   className="text-xs fill-gray-500"
                 >
-                  {index === 0 ? 'Start' : index === points.length - 1 ? 'End' : `${index}`}
+                  {index === 0 ? UI_TEXT.START_CHART_LABEL : index === points.length - 1 ? UI_TEXT.END_CHART_LABEL : `${index}`}
                 </text>
               </g>
             );
@@ -124,18 +127,18 @@ export function ElevationChart({ points, className = '' }: ElevationChartProps) 
         </svg>
       </div>
       
-      <div className="mt-4 grid grid-cols-3 gap-4 text-sm">
-        <div className="text-center">
-          <div className="font-semibold text-green-600">{formatElevation(points[0]?.elevation || 0)}</div>
-          <div className="text-gray-500">Start Elevation</div>
+      <div className={`mt-4 ${STYLES.GRID_3_GAP_4} ${STYLES.TEXT_SM_GRAY}`}>
+        <div className={STYLES.TEXT_CENTER}>
+          <div className={`font-semibold ${COLORS.TEXT.GREEN}`}>{formatElevation(points[0]?.elevation || 0)}</div>
+          <div className={STYLES.TEXT_SM_GRAY_500}>{UI_TEXT.START_ELEVATION}</div>
         </div>
-        <div className="text-center">
-          <div className="font-semibold text-blue-600">{formatElevation(maxElevation)}</div>
-          <div className="text-gray-500">Highest Point</div>
+        <div className={STYLES.TEXT_CENTER}>
+          <div className={`font-semibold ${COLORS.TEXT.BLUE}`}>{formatElevation(maxElevation)}</div>
+          <div className={STYLES.TEXT_SM_GRAY_500}>{UI_TEXT.HIGHEST_POINT}</div>
         </div>
-        <div className="text-center">
-          <div className="font-semibold text-red-600">{formatElevation(points[points.length - 1]?.elevation || 0)}</div>
-          <div className="text-gray-500">End Elevation</div>
+        <div className={STYLES.TEXT_CENTER}>
+          <div className={`font-semibold ${COLORS.TEXT.RED}`}>{formatElevation(points[points.length - 1]?.elevation || 0)}</div>
+          <div className={STYLES.TEXT_SM_GRAY_500}>{UI_TEXT.END_ELEVATION}</div>
         </div>
       </div>
     </div>
