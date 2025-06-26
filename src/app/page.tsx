@@ -5,9 +5,12 @@ import { Header } from '@/components/layouts/header';
 import { RouteInputForm } from '@/components/forms/route-input-form';
 import { ElevationChart } from '@/components/ui/elevation-chart';
 import { RouteMap } from '@/components/ui/route-map';
+import { RouteSummaryCard } from '@/components/ui/semantic/route-summary-card';
 import { Coordinate, Route } from '@/types/route';
 import { findOptimalRoute } from '@/lib/algorithms/pathfinding';
 import { calculateDistance, calculateElevationGain } from '@/lib/utils';
+import { UI_TEXT } from '@/constants/ui-text';
+import { STYLES } from '@/constants/styles';
 
 export default function Home() {
   const [currentRoute, setCurrentRoute] = useState<Route | null>(null);
@@ -21,7 +24,7 @@ export default function Home() {
       const routePoints = await findOptimalRoute(start, end);
       
       if (routePoints.length === 0) {
-        throw new Error('No route found');
+        throw new Error(UI_TEXT.NO_ROUTE_FOUND);
       }
 
       const distance = routePoints.reduce((total, point, index) => {
@@ -47,7 +50,7 @@ export default function Home() {
 
       const route: Route = {
         id: `route-${Date.now()}`,
-        name: 'Optimized Alpine Route',
+        name: UI_TEXT.OPTIMIZED_ALPINE_ROUTE,
         start,
         end,
         points: routePoints,
@@ -61,25 +64,24 @@ export default function Home() {
       setCurrentRoute(route);
     } catch (error) {
       console.error('Error planning route:', error);
-      alert('Error planning route. Please try again.');
+      alert(UI_TEXT.ERROR_PLANNING_ROUTE);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen ${STYLES.BG_GRAY_50}`}>
       <Header />
       
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div className="text-center space-y-4">
-            <h2 className="text-3xl font-bold text-gray-900">
-              Optimize Your Alpine Adventures
+      <main className={`${STYLES.CONTAINER} py-8`}>
+        <div className={`${STYLES.MAX_WIDTH_4XL} ${STYLES.SPACE_Y_8}`}>
+          <div className={`${STYLES.TEXT_CENTER} ${STYLES.SPACE_Y_4}`}>
+            <h2 className={`${STYLES.HEADING_3XL}`}>
+              {UI_TEXT.HERO_TITLE}
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Plan the perfect mountain route with AI-powered pathfinding, 
-              real-time weather data, and elevation analysis.
+            <p className={`${STYLES.TEXT_LG_GRAY} ${STYLES.MAX_WIDTH_2XL}`}>
+              {UI_TEXT.HERO_DESCRIPTION}
             </p>
           </div>
 
@@ -87,29 +89,9 @@ export default function Home() {
 
           {currentRoute && (
             <>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Route Summary</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{currentRoute.distance}km</div>
-                    <div className="text-sm text-gray-500">Distance</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{currentRoute.elevationGain}m</div>
-                    <div className="text-sm text-gray-500">Elevation Gain</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600 capitalize">{currentRoute.difficulty}</div>
-                    <div className="text-sm text-gray-500">Difficulty</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">{currentRoute.estimatedTime}h</div>
-                    <div className="text-sm text-gray-500">Est. Time</div>
-                  </div>
-                </div>
-              </div>
+              <RouteSummaryCard route={currentRoute} />
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className={STYLES.GRID_1_LG_2}>
                 <RouteMap points={currentRoute.points} />
                 <ElevationChart points={currentRoute.points} />
               </div>
