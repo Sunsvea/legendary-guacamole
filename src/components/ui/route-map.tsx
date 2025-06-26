@@ -83,56 +83,24 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
       </div>
       
       <div className="overflow-x-auto">
-        <svg width={mapWidth} height={mapHeight} className="w-full border border-gray-200 rounded bg-gradient-to-br from-green-100 via-yellow-50 to-orange-100">
+        <svg width={mapWidth} height={mapHeight} className="w-full border border-gray-300 rounded">
           
-          {/* Clean terrain-inspired background */}
-          <defs>
-            <linearGradient id="terrainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#22c55e" stopOpacity="0.1" />
-              <stop offset="30%" stopColor="#84cc16" stopOpacity="0.1" />
-              <stop offset="60%" stopColor="#eab308" stopOpacity="0.1" />
-              <stop offset="80%" stopColor="#f97316" stopOpacity="0.1" />
-              <stop offset="100%" stopColor="#dc2626" stopOpacity="0.1" />
-            </linearGradient>
-            
-            <pattern id="topographicLines" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-              <circle cx="20" cy="20" r="15" fill="none" stroke="#94a3b8" strokeWidth="0.5" opacity="0.3"/>
-              <circle cx="20" cy="20" r="8" fill="none" stroke="#94a3b8" strokeWidth="0.5" opacity="0.2"/>
-            </pattern>
-          </defs>
+          {/* Simple clean background */}
+          <rect width={mapWidth} height={mapHeight} fill="#f8fafc" />
           
-          <rect width={mapWidth} height={mapHeight} fill="url(#terrainGradient)" />
-          <rect width={mapWidth} height={mapHeight} fill="url(#topographicLines)" />
-          
-          {/* Grid lines for reference */}
-          {[...Array(5)].map((_, i) => {
-            const x = padding + (i / 4) * (mapWidth - 2 * padding);
-            const y = padding + (i / 4) * (mapHeight - 2 * padding);
+          {/* Subtle grid */}
+          {[...Array(11)].map((_, i) => {
+            const x = padding + (i / 10) * (mapWidth - 2 * padding);
+            const y = padding + (i / 10) * (mapHeight - 2 * padding);
             return (
               <g key={`grid-${i}`}>
-                <line x1={x} y1={padding} x2={x} y2={mapHeight - padding} stroke="#e5e7eb" strokeWidth="1" opacity="0.5" />
-                <line x1={padding} y1={y} x2={mapWidth - padding} y2={y} stroke="#e5e7eb" strokeWidth="1" opacity="0.5" />
+                <line x1={x} y1={padding} x2={x} y2={mapHeight - padding} stroke="#e2e8f0" strokeWidth="1" opacity="0.5" />
+                <line x1={padding} y1={y} x2={mapWidth - padding} y2={y} stroke="#e2e8f0" strokeWidth="1" opacity="0.5" />
               </g>
             );
           })}
           
-          {/* Main route path */}
-          <path
-            d={points.map((point, index) => {
-              const x = getX(point.lng);
-              const y = getY(point.lat);
-              return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
-            }).join(' ')}
-            fill="none"
-            stroke="#dc2626"
-            strokeWidth="4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray="0"
-            className="drop-shadow-lg"
-          />
-          
-          {/* Elevation-based route segments */}
+          {/* Route path with elevation coloring */}
           {points.map((point, index) => {
             if (index === 0) return null;
             const prevPoint = points[index - 1];
@@ -149,16 +117,15 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
                 x2={x2}
                 y2={y2}
                 stroke={getElevationColor(point.elevation)}
-                strokeWidth="6"
+                strokeWidth="5"
                 strokeLinecap="round"
-                opacity="0.8"
               />
             );
           })}
           
           {/* Route waypoints */}
           {points.map((point, index) => {
-            if (index % Math.ceil(points.length / 6) !== 0 && index !== 0 && index !== points.length - 1) {
+            if (index % Math.ceil(points.length / 8) !== 0 && index !== 0 && index !== points.length - 1) {
               return null;
             }
             
@@ -167,11 +134,10 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
                 key={`waypoint-${index}`}
                 cx={getX(point.lng)}
                 cy={getY(point.lat)}
-                r="3"
-                fill="#1f2937"
+                r="2"
+                fill="#374151"
                 stroke="#fff"
                 strokeWidth="1"
-                className="drop-shadow-sm"
               />
             );
           })}
@@ -219,27 +185,27 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
       <div className="mt-4 space-y-4">
         {/* Elevation Legend */}
         <div>
-          <div className="font-semibold text-gray-700 mb-2">Elevation Profile</div>
-          <div className="flex items-center space-x-4 text-xs">
+          <div className="font-semibold text-gray-900 mb-2">Route Elevation</div>
+          <div className="flex items-center space-x-4 text-sm text-gray-700">
             <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#22c55e' }}></div>
-              <span>Low</span>
+              <div className="w-4 h-4 rounded border border-gray-300" style={{ backgroundColor: '#22c55e' }}></div>
+              <span className="font-medium">Low</span>
             </div>
             <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#84cc16' }}></div>
-              <span>Med-Low</span>
+              <div className="w-4 h-4 rounded border border-gray-300" style={{ backgroundColor: '#84cc16' }}></div>
+              <span className="font-medium">Med-Low</span>
             </div>
             <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#eab308' }}></div>
-              <span>Medium</span>
+              <div className="w-4 h-4 rounded border border-gray-300" style={{ backgroundColor: '#eab308' }}></div>
+              <span className="font-medium">Medium</span>
             </div>
             <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#f97316' }}></div>
-              <span>Med-High</span>
+              <div className="w-4 h-4 rounded border border-gray-300" style={{ backgroundColor: '#f97316' }}></div>
+              <span className="font-medium">Med-High</span>
             </div>
             <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: '#dc2626' }}></div>
-              <span>High</span>
+              <div className="w-4 h-4 rounded border border-gray-300" style={{ backgroundColor: '#dc2626' }}></div>
+              <span className="font-medium">High</span>
             </div>
           </div>
         </div>
