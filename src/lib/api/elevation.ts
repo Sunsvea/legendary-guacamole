@@ -1,34 +1,32 @@
 import { Coordinate } from '@/types/route';
-import { ElevationResponse } from '@/types/api';
 
-const OPEN_ELEVATION_URL = 'https://api.open-elevation.com/api/v1/lookup';
+const OPEN_METEO_ELEVATION_URL = 'https://api.open-meteo.com/v1/elevation';
 
 export async function getElevation(coordinates: Coordinate[]): Promise<number[]> {
   try {
-    const locations = coordinates.map(coord => ({
-      latitude: coord.lat,
-      longitude: coord.lng
-    }));
+    const latitudes = coordinates.map(coord => coord.lat).join(',');
+    const longitudes = coordinates.map(coord => coord.lng).join(',');
 
-    const response = await fetch(OPEN_ELEVATION_URL, {
-      method: 'POST',
+    const url = `${OPEN_METEO_ELEVATION_URL}?latitude=${latitudes}&longitude=${longitudes}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
-      body: JSON.stringify({ locations }),
     });
 
     if (!response.ok) {
       throw new Error(`Elevation API error: ${response.status}`);
     }
 
-    const data: ElevationResponse = await response.json();
+    const data = await response.json();
     
-    if (data.status !== 'OK') {
-      throw new Error(`Elevation API status: ${data.status}`);
+    if (!data.elevation || !Array.isArray(data.elevation)) {
+      throw new Error('Invalid elevation data format');
     }
 
-    return data.results.map(result => result.elevation);
+    return data.elevation;
   } catch (error) {
     console.error('Error fetching elevation data:', error);
     throw new Error('Failed to fetch elevation data');
