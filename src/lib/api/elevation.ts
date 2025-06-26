@@ -1,5 +1,5 @@
 import { Coordinate } from '@/types/route';
-import { ElevationResponse, ApiError } from '@/types/api';
+import { ElevationResponse } from '@/types/api';
 
 const OPEN_ELEVATION_URL = 'https://api.open-elevation.com/api/v1/lookup';
 
@@ -31,10 +31,7 @@ export async function getElevation(coordinates: Coordinate[]): Promise<number[]>
     return data.results.map(result => result.elevation);
   } catch (error) {
     console.error('Error fetching elevation data:', error);
-    throw new ApiError({
-      message: 'Failed to fetch elevation data',
-      status: 500
-    });
+    throw new Error('Failed to fetch elevation data');
   }
 }
 
