@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Header } from '@/components/layouts/header';
 import { RouteInputForm } from '@/components/forms/route-input-form';
+import { ElevationChart } from '@/components/ui/elevation-chart';
+import { RouteMap } from '@/components/ui/route-map';
 import { Coordinate, Route } from '@/types/route';
 import { findOptimalRoute } from '@/lib/algorithms/pathfinding';
 import { calculateDistance, calculateElevationGain } from '@/lib/utils';
@@ -84,27 +86,34 @@ export default function Home() {
           <RouteInputForm onRouteSubmit={handleRouteSubmit} loading={loading} />
 
           {currentRoute && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Route Summary</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{currentRoute.distance}km</div>
-                  <div className="text-sm text-gray-500">Distance</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">{currentRoute.elevationGain}m</div>
-                  <div className="text-sm text-gray-500">Elevation Gain</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600 capitalize">{currentRoute.difficulty}</div>
-                  <div className="text-sm text-gray-500">Difficulty</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">{currentRoute.estimatedTime}h</div>
-                  <div className="text-sm text-gray-500">Est. Time</div>
+            <>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Route Summary</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">{currentRoute.distance}km</div>
+                    <div className="text-sm text-gray-500">Distance</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{currentRoute.elevationGain}m</div>
+                    <div className="text-sm text-gray-500">Elevation Gain</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-orange-600 capitalize">{currentRoute.difficulty}</div>
+                    <div className="text-sm text-gray-500">Difficulty</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600">{currentRoute.estimatedTime}h</div>
+                    <div className="text-sm text-gray-500">Est. Time</div>
+                  </div>
                 </div>
               </div>
-            </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <RouteMap points={currentRoute.points} />
+                <ElevationChart points={currentRoute.points} />
+              </div>
+            </>
           )}
         </div>
       </main>
