@@ -1,27 +1,30 @@
 'use client';
 
 import { Mountain } from 'lucide-react';
+import { UI_TEXT } from '@/constants/ui-text';
+import { STYLES } from '@/constants/styles';
+import { COLORS } from '@/constants/colors';
 
 export function Header() {
   return (
     <header className="border-b bg-white shadow-sm">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Mountain className="h-8 w-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900">
-              Alpine Route Optimizer
+      <div className={`${STYLES.CONTAINER} py-4`}>
+        <div className={STYLES.FLEX_BETWEEN}>
+          <div className={STYLES.FLEX_ITEMS_CENTER}>
+            <Mountain className={`${STYLES.ICON_LG} ${COLORS.TEXT.BLUE}`} />
+            <h1 className={`text-2xl font-bold ${COLORS.TEXT.PRIMARY} ml-2`}>
+              {UI_TEXT.APP_TITLE}
             </h1>
           </div>
-          <nav className="hidden md:flex space-x-6">
-            <a href="#routes" className="text-gray-600 hover:text-blue-600 transition-colors">
-              Routes
+          <nav className={STYLES.HIDDEN_MD_FLEX}>
+            <a href="#routes" className={`${COLORS.TEXT.SECONDARY} hover:${COLORS.TEXT.BLUE} transition-colors`}>
+              {UI_TEXT.NAV_ROUTES}
             </a>
-            <a href="#weather" className="text-gray-600 hover:text-blue-600 transition-colors">
-              Weather
+            <a href="#weather" className={`${COLORS.TEXT.SECONDARY} hover:${COLORS.TEXT.BLUE} transition-colors`}>
+              {UI_TEXT.NAV_WEATHER}
             </a>
-            <a href="#about" className="text-gray-600 hover:text-blue-600 transition-colors">
-              About
+            <a href="#about" className={`${COLORS.TEXT.SECONDARY} hover:${COLORS.TEXT.BLUE} transition-colors`}>
+              {UI_TEXT.NAV_ABOUT}
             </a>
           </nav>
         </div>
