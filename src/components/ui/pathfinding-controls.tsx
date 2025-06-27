@@ -11,7 +11,7 @@ interface PathfindingControlsProps {
 }
 
 export function PathfindingControls({ options, onOptionsChange, isCalculating }: PathfindingControlsProps) {
-  const handleSliderChange = (key: keyof PathfindingOptions, value: number) => {
+  const handleSliderChange = (key: keyof PathfindingOptions, value: number | boolean) => {
     onOptionsChange({
       ...options,
       [key]: value,
@@ -64,6 +64,13 @@ export function PathfindingControls({ options, onOptionsChange, isCalculating }:
             className={`${buttonClass} ${inactiveButtonClass}`}
           >
             Direct Route
+          </button>
+          <button
+            onClick={() => handlePresetClick('ROADS_ONLY')}
+            disabled={isCalculating}
+            className={`${buttonClass} ${inactiveButtonClass}`}
+          >
+            Roads Only
           </button>
         </div>
       </div>
@@ -161,6 +168,25 @@ export function PathfindingControls({ options, onOptionsChange, isCalculating }:
         {/* Trail Preference Settings */}
         <div className="space-y-3">
           <h4 className="font-medium text-gray-800 border-b pb-1">Trail Preference</h4>
+          
+          <div>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={options.roadsOnly}
+                onChange={(e) => handleSliderChange('roadsOnly', e.target.checked)}
+                disabled={isCalculating}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+              />
+              <span className="text-sm font-medium text-gray-700">Roads Only</span>
+              <div className="relative group">
+                <Info className="h-3 w-3 text-gray-400 cursor-help" />
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  Only use roads for routing. Ignore all trails and paths entirely.
+                </div>
+              </div>
+            </label>
+          </div>
           
           <div>
             <label className={labelClass}>
