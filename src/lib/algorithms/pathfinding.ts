@@ -3,6 +3,52 @@ import { PathfindingOptions, DEFAULT_PATHFINDING_OPTIONS } from '@/types/pathfin
 import { calculateDistance } from '@/lib/utils';
 import { getElevationForRoute, getElevation } from '@/lib/api/elevation';
 import { fetchTrailData, isOnTrail, findNearestTrailPoint, getTrailsNearCoordinate, TrailSegment, TrailNetwork } from '@/lib/api/trails';
+import { 
+  TERRAIN_MULTIPLIERS, 
+  calculateSlope, 
+  calculateHikingSpeed, 
+  calculateSlopeVariability, 
+  detectTerrainType,
+  calculateTerrainComplexity,
+  CONVERSION_CONSTANTS,
+  SLOPE_THRESHOLDS
+} from '@/lib/algorithms/pathfinding/terrain/terrain-analyzer';
+
+// =============================================================================
+// PATHFINDING ALGORITHM CONSTANTS
+// =============================================================================
+
+/**
+ * Constants for A* pathfinding algorithm
+ */
+const PATHFINDING_CONSTANTS = {
+  /** Coordinate comparison tolerance for pathfinding nodes */
+  COORDINATE_TOLERANCE: 0.0001,
+  /** Elevation penalty factor for heuristic calculation */
+  ELEVATION_PENALTY_FACTOR: 0.001,
+  /** Time cost scaling factor for A* algorithm */
+  TIME_COST_SCALE_FACTOR: 10,
+  /** Goal distance threshold for pathfinding completion */
+  GOAL_DISTANCE_THRESHOLD: 0.01,
+  /** Danger slope penalty exponent divisor */
+  DANGER_SLOPE_DIVISOR: 50,
+  /** Very steep terrain penalty multiplier */
+  STEEP_TERRAIN_PENALTY: 1.5
+} as const;
+
+/**
+ * Constants for trail analysis and optimization
+ */
+const TRAIL_CONSTANTS = {
+  /** Maximum trails to consider for performance (with spatial index) */
+  MAX_TRAILS_WITH_INDEX: 20,
+  /** Maximum trails to consider for performance (fallback) */
+  MAX_TRAILS_FALLBACK: 50,
+  /** Trail detection radius in km */
+  TRAIL_DETECTION_RADIUS: 0.15,
+  /** Road detection radius in km */
+  ROAD_DETECTION_RADIUS: 0.1
+} as const;
 
 class PriorityQueue {
   private items: PathfindingNode[] = [];
@@ -22,116 +68,18 @@ class PriorityQueue {
 
   contains(coordinate: Coordinate): boolean {
     return this.items.some(item => 
-      Math.abs(item.coordinate.lat - coordinate.lat) < 0.0001 &&
-      Math.abs(item.coordinate.lng - coordinate.lng) < 0.0001
+      Math.abs(item.coordinate.lat - coordinate.lat) < PATHFINDING_CONSTANTS.COORDINATE_TOLERANCE &&
+      Math.abs(item.coordinate.lng - coordinate.lng) < PATHFINDING_CONSTANTS.COORDINATE_TOLERANCE
     );
   }
 }
 
 function calculateHeuristic(current: Coordinate, goal: Coordinate): number {
   const distance = calculateDistance(current, goal);
-  const elevationPenalty = (current.elevation || 0) * 0.001;
+  const elevationPenalty = (current.elevation || 0) * PATHFINDING_CONSTANTS.ELEVATION_PENALTY_FACTOR;
   return distance + elevationPenalty;
 }
 
-/**
- * Calculate hiking speed using Tobler's hiking function
- * Speed = 6 * exp(-3.5 * |slope + 0.05|) km/h
- * @param slope Grade as rise/run ratio (not percentage)
- * @returns Speed in km/h
- */
-function calculateHikingSpeed(slope: number): number {
-  // Tobler's hiking function
-  const speed = 6 * Math.exp(-3.5 * Math.abs(slope + 0.05));
-  
-  // Ensure minimum speed for safety calculations
-  return Math.max(speed, 0.5);
-}
-
-/**
- * Calculate slope percentage from elevation change and distance
- * @param elevationDiff Elevation change in meters
- * @param distance Horizontal distance in kilometers
- * @returns Slope as rise/run ratio
- */
-function calculateSlope(elevationDiff: number, distance: number): number {
-  if (distance === 0) return 0;
-  
-  // Convert distance from km to meters for consistent units
-  const distanceMeters = distance * 1000;
-  return elevationDiff / distanceMeters;
-}
-
-/**
- * Terrain surface types with associated movement costs
- */
-enum TerrainType {
-  TRAIL = 'trail',
-  VEGETATION = 'vegetation', 
-  ROCK = 'rock',
-  SCREE = 'scree',
-  UNKNOWN = 'unknown'
-}
-
-/**
- * Terrain surface multipliers for movement cost
- */
-const TERRAIN_MULTIPLIERS = {
-  [TerrainType.TRAIL]: 0.8,      // Easiest - established paths
-  [TerrainType.VEGETATION]: 1.0,  // Normal - grass, forest
-  [TerrainType.ROCK]: 1.3,       // Harder - solid rock faces
-  [TerrainType.SCREE]: 1.8,      // Hardest - loose rock/debris
-  [TerrainType.UNKNOWN]: 1.1     // Slight penalty for uncertainty
-};
-
-/**
- * Detect terrain type based on elevation gradient analysis
- * @param slope Current slope ratio
- * @param slopeVariability How much slope changes in nearby area
- * @returns Detected terrain type
- */
-function detectTerrainType(slope: number, slopeVariability: number): TerrainType {
-  const slopePercentage = Math.abs(slope * 100);
-  
-  // Very steep with high variability = scree/loose rock
-  if (slopePercentage > 40 && slopeVariability > 0.3) {
-    return TerrainType.SCREE;
-  }
-  
-  // Steep with low variability = solid rock
-  if (slopePercentage > 35 && slopeVariability < 0.15) {
-    return TerrainType.ROCK;
-  }
-  
-  // Gentle, consistent slope = likely trail
-  if (slopePercentage < 20 && slopeVariability < 0.1) {
-    return TerrainType.TRAIL;
-  }
-  
-  // Moderate slope with moderate variability = vegetation
-  if (slopePercentage < 30) {
-    return TerrainType.VEGETATION;
-  }
-  
-  return TerrainType.UNKNOWN;
-}
-
-/**
- * Calculate slope variability in nearby area (simplified version)
- * In a full implementation, this would analyze multiple nearby elevation points
- * @param slope Current slope
- * @returns Estimated slope variability (0-1 scale)
- */
-function calculateSlopeVariability(slope: number): number {
-  // Simplified heuristic - in practice would need multiple elevation samples
-  // Higher absolute slope tends to have higher variability in mountain terrain
-  const baseVariability = Math.min(Math.abs(slope) * 2, 0.5);
-  
-  // Add some randomness to simulate real terrain variation
-  const randomFactor = (Math.random() - 0.5) * 0.2;
-  
-  return Math.max(0, Math.min(1, baseVariability + randomFactor));
-}
 
 /**
  * Enhanced movement cost calculation using Tobler's hiking function and terrain analysis
@@ -155,20 +103,20 @@ function calculateMovementCost(from: Coordinate, to: Coordinate, trailNetwork?: 
   const timeCost = distance / hikingSpeed; // hours
   
   // Base cost is time in hours converted to cost units
-  let cost = timeCost * 10; // Scale factor for A* algorithm
+  let cost = timeCost * PATHFINDING_CONSTANTS.TIME_COST_SCALE_FACTOR;
   
   // PERFORMANCE FIX: Use spatial index for fast nearby trail lookup
   let nearbyTrails: TrailSegment[] = [];
   if (trailNetwork && trailNetwork.spatialIndex) {
-    nearbyTrails = getTrailsNearCoordinate(from, trailNetwork.spatialIndex, trailNetwork.bbox).slice(0, 20);
+    nearbyTrails = getTrailsNearCoordinate(from, trailNetwork.spatialIndex, trailNetwork.bbox).slice(0, TRAIL_CONSTANTS.MAX_TRAILS_WITH_INDEX);
   } else if (trailNetwork) {
-    // Fallback: limit to first 50 trails for performance
-    nearbyTrails = trailNetwork.trails.slice(0, 50);
+    // Fallback: limit trails for performance
+    nearbyTrails = trailNetwork.trails.slice(0, TRAIL_CONSTANTS.MAX_TRAILS_FALLBACK);
   }
   
   // Quick trail checking with limited trails
-  const fromOnTrail = nearbyTrails.length > 0 ? isOnTrail(from, nearbyTrails, 0.15) : false;
-  const toOnTrail = nearbyTrails.length > 0 ? isOnTrail(to, nearbyTrails, 0.15) : false;
+  const fromOnTrail = nearbyTrails.length > 0 ? isOnTrail(from, nearbyTrails, TRAIL_CONSTANTS.TRAIL_DETECTION_RADIUS) : false;
+  const toOnTrail = nearbyTrails.length > 0 ? isOnTrail(to, nearbyTrails, TRAIL_CONSTANTS.TRAIL_DETECTION_RADIUS) : false;
   const onTrailMovement = fromOnTrail && toOnTrail;
   
   // Apply terrain-based cost multiplier
@@ -180,7 +128,7 @@ function calculateMovementCost(from: Coordinate, to: Coordinate, trailNetwork?: 
   if (onTrailMovement) {
     // Check if it's a road in our limited set
     const onRoad = nearbyTrails.some(trail => 
-      trail.isRoad && isOnTrail(from, [trail], 0.1)
+      trail.isRoad && isOnTrail(from, [trail], TRAIL_CONSTANTS.ROAD_DETECTION_RADIUS)
     );
     
     if (onRoad) {
@@ -193,19 +141,31 @@ function calculateMovementCost(from: Coordinate, to: Coordinate, trailNetwork?: 
     cost *= options.offTrailPenalty; // Configurable off-trail penalty
   }
   
-  // Add exponential penalty for dangerous slopes (>45° ≈ 100% grade)
-  if (slopePercentage > 100) {
-    const dangerMultiplier = Math.exp((slopePercentage - 100) / 50);
+  // Add exponential penalty for dangerous slopes
+  if (slopePercentage > SLOPE_THRESHOLDS.DANGEROUS) {
+    const dangerMultiplier = Math.exp((slopePercentage - SLOPE_THRESHOLDS.DANGEROUS) / PATHFINDING_CONSTANTS.DANGER_SLOPE_DIVISOR);
     cost *= dangerMultiplier;
   }
   
-  // Additional penalty for very steep terrain (>30° ≈ 58% grade)
-  if (slopePercentage > 58) {
-    cost *= 1.5;
+  // Additional penalty for very steep terrain
+  if (slopePercentage > SLOPE_THRESHOLDS.VERY_STEEP_GRADE) {
+    cost *= PATHFINDING_CONSTANTS.STEEP_TERRAIN_PENALTY;
   }
   
   return cost;
 }
+
+/**
+ * Step size calculation constants
+ */
+const STEP_SIZE_CONSTANTS = {
+  BASE_STEP_SIZE: 0.005,        // ~550m at equator for better trail finding
+  MIN_STEP_SIZE: 0.001,         // ~110m for complex terrain
+  MAX_STEP_SIZE: 0.01,          // ~1100m for simple terrain
+  COMPLEXITY_REDUCTION: 0.5,    // Terrain complexity reduction factor
+  MIN_ELEVATION_FACTOR: 0.7,    // Minimum elevation factor
+  MAX_ELEVATION_THRESHOLD: 8000 // Maximum elevation for factor calculation
+} as const;
 
 /**
  * Calculate appropriate step size based on terrain complexity
@@ -214,19 +174,21 @@ function calculateMovementCost(from: Coordinate, to: Coordinate, trailNetwork?: 
  * @returns Adaptive step size
  */
 function calculateAdaptiveStepSize(elevation: number, terrainComplexity: number): number {
-  const baseStepSize = 0.005; // Increased to ~550m at equator for better trail finding
-  const minStepSize = 0.001;  // ~110m for complex terrain
-  const maxStepSize = 0.01;   // ~1100m for simple terrain
-  
   // Reduce step size for complex terrain
-  const complexityFactor = 1 - (terrainComplexity * 0.5); // Less reduction
+  const complexityFactor = 1 - (terrainComplexity * STEP_SIZE_CONSTANTS.COMPLEXITY_REDUCTION);
   
   // Reduce step size at higher elevations (more dangerous terrain)
-  const elevationFactor = Math.max(0.7, 1 - (elevation / 8000)); // Less reduction
+  const elevationFactor = Math.max(
+    STEP_SIZE_CONSTANTS.MIN_ELEVATION_FACTOR, 
+    1 - (elevation / STEP_SIZE_CONSTANTS.MAX_ELEVATION_THRESHOLD)
+  );
   
-  const adaptiveStepSize = baseStepSize * complexityFactor * elevationFactor;
+  const adaptiveStepSize = STEP_SIZE_CONSTANTS.BASE_STEP_SIZE * complexityFactor * elevationFactor;
   
-  return Math.max(minStepSize, Math.min(maxStepSize, adaptiveStepSize));
+  return Math.max(
+    STEP_SIZE_CONSTANTS.MIN_STEP_SIZE, 
+    Math.min(STEP_SIZE_CONSTANTS.MAX_STEP_SIZE, adaptiveStepSize)
+  );
 }
 
 /**
@@ -238,24 +200,12 @@ function calculateAdaptiveStepSize(elevation: number, terrainComplexity: number)
 function generateNeighbors(current: Coordinate, elevationPoints: Coordinate[] = []): Coordinate[] {
   const neighbors: Coordinate[] = [];
   
-  // Estimate terrain complexity based on nearby elevation variation
-  let terrainComplexity = 0.5; // Default moderate complexity
-  
-  if (elevationPoints.length > 0) {
-    // Find nearby points for complexity analysis
-    const nearbyPoints = elevationPoints.filter(point => 
-      calculateDistance(current, point) < 0.01 // Within ~1km
-    );
-    
-    if (nearbyPoints.length > 2) {
-      const elevations = nearbyPoints.map(p => p.elevation || 0);
-      const elevationRange = Math.max(...elevations) - Math.min(...elevations);
-      const avgElevation = elevations.reduce((sum, e) => sum + e, 0) / elevations.length;
-      
-      // Higher elevation variation = higher complexity
-      terrainComplexity = Math.min(1, elevationRange / Math.max(100, avgElevation * 0.1));
-    }
-  }
+  // Calculate terrain complexity using the terrain analyzer
+  const terrainComplexity = calculateTerrainComplexity({
+    coordinate: current,
+    elevationPoints,
+    analysisRadius: CONVERSION_CONSTANTS.NEARBY_POINT_THRESHOLD
+  });
   
   const stepSize = calculateAdaptiveStepSize(current.elevation || 0, terrainComplexity);
   
@@ -963,7 +913,7 @@ export async function findOptimalRoute(
       const current = openSet.dequeue();
       if (!current) break;
 
-      if (calculateDistance(current.coordinate, endWithElevation) < 0.01) {
+      if (calculateDistance(current.coordinate, endWithElevation) < PATHFINDING_CONSTANTS.GOAL_DISTANCE_THRESHOLD) {
         const pathfindingTime = performance.now() - pathfindingStart;
         console.log(`✅ Path found in ${iterations} iterations (${pathfindingTime.toFixed(2)}ms)`);
         const reconstructStart = performance.now();
@@ -987,15 +937,15 @@ export async function findOptimalRoute(
 
       for (const neighbor of neighbors) {
         if (closedSet.some(coord => 
-          Math.abs(coord.lat - neighbor.lat) < 0.0001 && 
-          Math.abs(coord.lng - neighbor.lng) < 0.0001
+          Math.abs(coord.lat - neighbor.lat) < PATHFINDING_CONSTANTS.COORDINATE_TOLERANCE && 
+          Math.abs(coord.lng - neighbor.lng) < PATHFINDING_CONSTANTS.COORDINATE_TOLERANCE
         )) {
           continue;
         }
 
         const elevationPoint = elevationPoints.find(point =>
-          Math.abs(point.lat - neighbor.lat) < 0.01 &&
-          Math.abs(point.lng - neighbor.lng) < 0.01
+          Math.abs(point.lat - neighbor.lat) < PATHFINDING_CONSTANTS.GOAL_DISTANCE_THRESHOLD &&
+          Math.abs(point.lng - neighbor.lng) < PATHFINDING_CONSTANTS.GOAL_DISTANCE_THRESHOLD
         );
         
         if (elevationPoint) {
