@@ -11,7 +11,9 @@ export interface TrailSegment {
   trail_visibility?: string;
   sac_scale?: string; // Swiss Alpine Club scale
   name?: string;
-  highway?: string; // OSM highway tag (path, track, footway)
+  highway?: string; // OSM highway tag (path, track, footway, etc)
+  isWater?: boolean; // Water bodies to avoid
+  isRoad?: boolean; // Roads for faster travel
 }
 
 /**
@@ -58,9 +60,13 @@ function buildOverpassQuery(bbox: { minLat: number; maxLat: number; minLng: numb
   return `
     [out:json][timeout:25];
     (
-      way["highway"~"^(path|track|footway)$"](${minLat},${minLng},${maxLat},${maxLng});
+      way["highway"~"^(path|track|footway|cycleway|bridleway|steps)$"](${minLat},${minLng},${maxLat},${maxLng});
+      way["highway"~"^(tertiary|secondary|primary|trunk|residential|service)$"]["access"!="private"](${minLat},${minLng},${maxLat},${maxLng});
       way["route"="hiking"](${minLat},${minLng},${maxLat},${maxLng});
       way["sac_scale"](${minLat},${minLng},${maxLat},${maxLng});
+      way["natural"="water"](${minLat},${minLng},${maxLat},${maxLng});
+      way["waterway"~"^(river|stream|canal)$"](${minLat},${minLng},${maxLat},${maxLng});
+      relation["natural"="water"](${minLat},${minLng},${maxLat},${maxLng});
     );
     out geom;
   `.trim();
@@ -174,6 +180,17 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
         if (coordinates.length < 2) continue; // Skip invalid trails
         
         const tags = element.tags || {};
+        
+        // Identify water bodies
+        const isWater = tags.natural === 'water' || 
+                       tags.waterway === 'river' || 
+                       tags.waterway === 'stream' || 
+                       tags.waterway === 'canal';
+        
+        // Identify roads for faster travel
+        const isRoad = tags.highway && 
+                      ['tertiary', 'secondary', 'primary', 'trunk', 'residential', 'service'].includes(tags.highway);
+        
         const trail: TrailSegment = {
           id: element.id.toString(),
           coordinates,
@@ -183,6 +200,8 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
           sac_scale: tags.sac_scale,
           name: tags.name,
           highway: tags.highway,
+          isWater,
+          isRoad,
         };
         
         trails.push(trail);

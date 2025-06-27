@@ -155,24 +155,50 @@ function calculateMovementCost(from: Coordinate, to: Coordinate, trails: TrailSe
   // Base cost is time in hours converted to cost units
   let cost = timeCost * 10; // Scale factor for A* algorithm
   
-  // Check if movement is on established trails
-  const fromOnTrail = isOnTrail(from, trails, 0.05); // 50m tolerance
-  const toOnTrail = isOnTrail(to, trails, 0.05);
+  // Check for water bodies and apply massive penalty
+  const nearWater = trails.some(trail => 
+    trail.isWater && (
+      isOnTrail(from, [trail], 0.1) || 
+      isOnTrail(to, [trail], 0.1)
+    )
+  );
+  
+  if (nearWater) {
+    cost *= 50; // Massive penalty for crossing water
+  }
+  
+  // Check if movement is on established trails/roads
+  const fromOnTrail = isOnTrail(from, trails, 0.15); // Increased to 150m tolerance
+  const toOnTrail = isOnTrail(to, trails, 0.15);
   const onTrailMovement = fromOnTrail && toOnTrail;
+  
+  // Check if on roads specifically
+  const onRoad = trails.some(trail => 
+    trail.isRoad && (
+      isOnTrail(from, [trail], 0.1) && 
+      isOnTrail(to, [trail], 0.1)
+    )
+  );
   
   // Apply terrain-based cost multiplier
   const slopeVariability = calculateSlopeVariability(slope);
   const terrainType = detectTerrainType(slope, slopeVariability);
   let terrainMultiplier = TERRAIN_MULTIPLIERS[terrainType];
   
-  // Override terrain detection if on established trail
-  if (onTrailMovement) {
+  // Aggressive trail/road preference
+  if (onRoad) {
+    // Roads get the biggest bonus
+    cost *= 0.3; // 70% cost reduction for roads
+  } else if (onTrailMovement) {
     terrainMultiplier = TERRAIN_MULTIPLIERS[TerrainType.TRAIL];
     
-    // Additional bonus for staying on trails
-    cost *= 0.7; // 30% cost reduction for trail usage
+    // Very aggressive trail bonus
+    cost *= 0.4; // 60% cost reduction for trails
   } else {
     cost *= terrainMultiplier;
+    
+    // Heavy penalty for off-trail movement
+    cost *= 2.0; // Double cost for going off established paths
   }
   
   // Add exponential penalty for dangerous slopes (>45° ≈ 100% grade)
@@ -282,20 +308,31 @@ function reconstructPath(node: PathfindingNode): RoutePoint[] {
  */
 function optimizeRouteWithTrails(points: Coordinate[], trails: TrailSegment[]): RoutePoint[] {
   const optimizedPoints: RoutePoint[] = [];
-  const maxSnapDistance = 0.2; // 200m maximum snap distance
+  const maxSnapDistance = 0.5; // Increased to 500m maximum snap distance
+  
+  // Filter out water bodies for snapping
+  const nonWaterTrails = trails.filter(trail => !trail.isWater);
   
   for (let i = 0; i < points.length; i++) {
     const point = points[i];
-    const nearest = findNearestTrailPoint(point, trails, maxSnapDistance);
     
-    // Snap to trail if it's close and beneficial
+    // Prioritize roads, then trails
+    const roadNearest = findNearestTrailPoint(point, trails.filter(t => t.isRoad), maxSnapDistance);
+    const trailNearest = findNearestTrailPoint(point, nonWaterTrails.filter(t => !t.isRoad), maxSnapDistance);
+    
+    let nearest = roadNearest;
+    if (!nearest || (trailNearest && trailNearest.distance < nearest.distance)) {
+      nearest = trailNearest;
+    }
+    
+    // Aggressively snap to trails/roads
     if (nearest && nearest.distance < maxSnapDistance) {
-      // Only snap if it doesn't significantly increase total distance
+      // Allow up to 100% distance increase for trail/road benefits
       const originalDistance = i > 0 ? calculateDistance(points[i-1], point) : 0;
       const newDistance = i > 0 ? calculateDistance(points[i-1], nearest.point) : 0;
       
-      // Allow up to 20% distance increase for trail benefits
-      if (newDistance <= originalDistance * 1.2) {
+      // Much more aggressive snapping - allow 2x distance increase
+      if (newDistance <= originalDistance * 2.0 || originalDistance < 0.1) {
         optimizedPoints.push({
           lat: nearest.point.lat,
           lng: nearest.point.lng,
