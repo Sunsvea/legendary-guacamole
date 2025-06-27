@@ -1,0 +1,49 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--read-only",
+        "--project-ref=hvwohdkcjcaooebsahjj"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2d29oZGtjamNhb29lYnNhaGpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA4NjI1OTEsImV4cCI6MjA2NjQzODU5MX0.aZXKLEM8edPhTzSiYTgpTX5AEF08-CQ-4GMNMUThqhU"
+      }
+    },
+    "digitalocean": {
+      "command": "npx",
+      "args": [
+        "@digitalocean/mcp"
+      ],
+      "env": {
+        "DIGITALOCEAN_API_TOKEN": "dop_v1_bac41728f8910a1c7936f2552182995f9b5e4df30ceeed2acc3341a12bae4343"
+      }
+    },
+    "MapboxServer": {
+      "command": "/opt/homebrew/bin/npx",
+      "args": [
+        "-y",
+        "@mapbox/mcp-server"
+      ],
+      "env": {
+        "MAPBOX_ACCESS_TOKEN": "pk.eyJ1Ijoic3Vuc3ZlYSIsImEiOiJjbWNkZjdsaG0wOTFpMmpxemx1NWUyeWN1In0.r3xuMHBMpVWu7oOqVuJpiA"
+      }
+    },
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "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"
+      }
+    }
+  }
+}

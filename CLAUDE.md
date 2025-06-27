@@ -32,6 +32,7 @@ The application implements A* pathfinding algorithm for route optimization:
 - Uses priority queue with heuristic cost calculation
 - Factors in elevation gain, distance, and terrain steepness
 - Falls back to direct route with elevation data if pathfinding fails
+- **Development Roadmap**: See `DEVELOPMENT_TODO_LIST.md` for planned terrain-aware pathfinding improvements
 
 ### Key Components
 - **Route Input**: `src/components/forms/route-input-form.tsx` - User input for start/end coordinates
@@ -42,8 +43,10 @@ The application implements A* pathfinding algorithm for route optimization:
 
 ### External APIs
 - **Elevation Data**: Uses Open-Meteo Elevation API (`src/lib/api/elevation.ts`)
+- **Mapbox Integration**: Interactive terrain maps with Mapbox GL JS (`src/components/ui/route-map.tsx`)
 - Fetches elevation points along route with configurable resolution
 - Handles API failures gracefully with fallback elevation data
+- Full Mapbox API access for advanced terrain analysis (see `DEVELOPMENT_TODO_LIST.md`)
 
 ### Type System
 Well-defined TypeScript interfaces in `src/types/`:
@@ -67,6 +70,15 @@ Located in `src/lib/utils/index.ts`:
   - **Semantic Components**: Logical UI elements extracted into semantic components (e.g., `<FindOptimalRouteButton>`)
   - **Consistency**: Avoid custom className repetition - use constants for reused styles
   - **Maintainability**: Components should be easily translatable and theme-able
+
+## Development Planning
+
+### Current Priorities
+See `DEVELOPMENT_TODO_LIST.md` for the comprehensive roadmap to implement terrain-aware pathfinding:
+- **Phase 1**: Enhanced terrain analysis with realistic hiking cost models
+- **Phase 2**: Trail integration using OpenStreetMap and Mapbox data
+- **Phase 3**: Advanced pathfinding with multi-objective optimization
+- **Phase 4**: Route optimization and user preferences
 
 ### Commit Standards you MUST follow:
 - Each commit should cover an atomic unit of work and be readable. Examples:

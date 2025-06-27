@@ -32,26 +32,197 @@ function calculateHeuristic(current: Coordinate, goal: Coordinate): number {
   return distance + elevationPenalty;
 }
 
-function calculateMovementCost(from: Coordinate, to: Coordinate): number {
-  const distance = calculateDistance(from, to);
-  const elevationDiff = (to.elevation || 0) - (from.elevation || 0);
+/**
+ * Calculate hiking speed using Tobler's hiking function
+ * Speed = 6 * exp(-3.5 * |slope + 0.05|) km/h
+ * @param slope Grade as rise/run ratio (not percentage)
+ * @returns Speed in km/h
+ */
+function calculateHikingSpeed(slope: number): number {
+  // Tobler's hiking function
+  const speed = 6 * Math.exp(-3.5 * Math.abs(slope + 0.05));
   
-  let cost = distance;
+  // Ensure minimum speed for safety calculations
+  return Math.max(speed, 0.5);
+}
+
+/**
+ * Calculate slope percentage from elevation change and distance
+ * @param elevationDiff Elevation change in meters
+ * @param distance Horizontal distance in kilometers
+ * @returns Slope as rise/run ratio
+ */
+function calculateSlope(elevationDiff: number, distance: number): number {
+  if (distance === 0) return 0;
   
-  if (elevationDiff > 0) {
-    cost += elevationDiff * 0.01;
+  // Convert distance from km to meters for consistent units
+  const distanceMeters = distance * 1000;
+  return elevationDiff / distanceMeters;
+}
+
+/**
+ * Terrain surface types with associated movement costs
+ */
+enum TerrainType {
+  TRAIL = 'trail',
+  VEGETATION = 'vegetation', 
+  ROCK = 'rock',
+  SCREE = 'scree',
+  UNKNOWN = 'unknown'
+}
+
+/**
+ * Terrain surface multipliers for movement cost
+ */
+const TERRAIN_MULTIPLIERS = {
+  [TerrainType.TRAIL]: 0.8,      // Easiest - established paths
+  [TerrainType.VEGETATION]: 1.0,  // Normal - grass, forest
+  [TerrainType.ROCK]: 1.3,       // Harder - solid rock faces
+  [TerrainType.SCREE]: 1.8,      // Hardest - loose rock/debris
+  [TerrainType.UNKNOWN]: 1.1     // Slight penalty for uncertainty
+};
+
+/**
+ * Detect terrain type based on elevation gradient analysis
+ * @param slope Current slope ratio
+ * @param slopeVariability How much slope changes in nearby area
+ * @returns Detected terrain type
+ */
+function detectTerrainType(slope: number, slopeVariability: number): TerrainType {
+  const slopePercentage = Math.abs(slope * 100);
+  
+  // Very steep with high variability = scree/loose rock
+  if (slopePercentage > 40 && slopeVariability > 0.3) {
+    return TerrainType.SCREE;
   }
   
-  const steepness = Math.abs(elevationDiff) / distance;
-  if (steepness > 0.3) {
+  // Steep with low variability = solid rock
+  if (slopePercentage > 35 && slopeVariability < 0.15) {
+    return TerrainType.ROCK;
+  }
+  
+  // Gentle, consistent slope = likely trail
+  if (slopePercentage < 20 && slopeVariability < 0.1) {
+    return TerrainType.TRAIL;
+  }
+  
+  // Moderate slope with moderate variability = vegetation
+  if (slopePercentage < 30) {
+    return TerrainType.VEGETATION;
+  }
+  
+  return TerrainType.UNKNOWN;
+}
+
+/**
+ * Calculate slope variability in nearby area (simplified version)
+ * In a full implementation, this would analyze multiple nearby elevation points
+ * @param slope Current slope
+ * @returns Estimated slope variability (0-1 scale)
+ */
+function calculateSlopeVariability(slope: number): number {
+  // Simplified heuristic - in practice would need multiple elevation samples
+  // Higher absolute slope tends to have higher variability in mountain terrain
+  const baseVariability = Math.min(Math.abs(slope) * 2, 0.5);
+  
+  // Add some randomness to simulate real terrain variation
+  const randomFactor = (Math.random() - 0.5) * 0.2;
+  
+  return Math.max(0, Math.min(1, baseVariability + randomFactor));
+}
+
+/**
+ * Enhanced movement cost calculation using Tobler's hiking function and terrain analysis
+ */
+function calculateMovementCost(from: Coordinate, to: Coordinate): number {
+  const distance = calculateDistance(from, to); // in km
+  const elevationDiff = (to.elevation || 0) - (from.elevation || 0); // in meters
+  
+  if (distance === 0) return 0;
+  
+  const slope = calculateSlope(elevationDiff, distance);
+  const slopePercentage = Math.abs(slope * 100);
+  
+  // Calculate time cost using Tobler's function
+  const hikingSpeed = calculateHikingSpeed(slope);
+  const timeCost = distance / hikingSpeed; // hours
+  
+  // Base cost is time in hours converted to cost units
+  let cost = timeCost * 10; // Scale factor for A* algorithm
+  
+  // Apply terrain-based cost multiplier
+  const slopeVariability = calculateSlopeVariability(slope);
+  const terrainType = detectTerrainType(slope, slopeVariability);
+  const terrainMultiplier = TERRAIN_MULTIPLIERS[terrainType];
+  cost *= terrainMultiplier;
+  
+  // Add exponential penalty for dangerous slopes (>45° ≈ 100% grade)
+  if (slopePercentage > 100) {
+    const dangerMultiplier = Math.exp((slopePercentage - 100) / 50);
+    cost *= dangerMultiplier;
+  }
+  
+  // Additional penalty for very steep terrain (>30° ≈ 58% grade)
+  if (slopePercentage > 58) {
     cost *= 1.5;
   }
   
   return cost;
 }
 
-function generateNeighbors(current: Coordinate, stepSize: number = 0.002): Coordinate[] {
+/**
+ * Calculate appropriate step size based on terrain complexity
+ * @param elevation Current elevation
+ * @param terrainComplexity Estimated terrain complexity (0-1 scale)
+ * @returns Adaptive step size
+ */
+function calculateAdaptiveStepSize(elevation: number, terrainComplexity: number): number {
+  const baseStepSize = 0.002; // ~220m at equator
+  const minStepSize = 0.0005; // ~55m for complex terrain
+  const maxStepSize = 0.004;  // ~440m for simple terrain
+  
+  // Reduce step size for complex terrain
+  const complexityFactor = 1 - (terrainComplexity * 0.75);
+  
+  // Reduce step size at higher elevations (more dangerous terrain)
+  const elevationFactor = Math.max(0.5, 1 - (elevation / 8000)); // Normalize to 8000m max
+  
+  const adaptiveStepSize = baseStepSize * complexityFactor * elevationFactor;
+  
+  return Math.max(minStepSize, Math.min(maxStepSize, adaptiveStepSize));
+}
+
+/**
+ * Generate neighbors with variable step sizes based on terrain complexity
+ * @param current Current coordinate
+ * @param elevationPoints Available elevation data for complexity analysis
+ * @returns Array of neighbor coordinates
+ */
+function generateNeighbors(current: Coordinate, elevationPoints: Coordinate[] = []): Coordinate[] {
   const neighbors: Coordinate[] = [];
+  
+  // Estimate terrain complexity based on nearby elevation variation
+  let terrainComplexity = 0.5; // Default moderate complexity
+  
+  if (elevationPoints.length > 0) {
+    // Find nearby points for complexity analysis
+    const nearbyPoints = elevationPoints.filter(point => 
+      calculateDistance(current, point) < 0.01 // Within ~1km
+    );
+    
+    if (nearbyPoints.length > 2) {
+      const elevations = nearbyPoints.map(p => p.elevation || 0);
+      const elevationRange = Math.max(...elevations) - Math.min(...elevations);
+      const avgElevation = elevations.reduce((sum, e) => sum + e, 0) / elevations.length;
+      
+      // Higher elevation variation = higher complexity
+      terrainComplexity = Math.min(1, elevationRange / Math.max(100, avgElevation * 0.1));
+    }
+  }
+  
+  const stepSize = calculateAdaptiveStepSize(current.elevation || 0, terrainComplexity);
+  
+  // 8-direction movement with adaptive step size
   const directions = [
     [-stepSize, 0], [stepSize, 0], [0, -stepSize], [0, stepSize],
     [-stepSize, -stepSize], [-stepSize, stepSize], [stepSize, -stepSize], [stepSize, stepSize]
@@ -129,7 +300,7 @@ export async function findOptimalRoute(
 
       closedSet.push(current.coordinate);
 
-      const neighbors = generateNeighbors(current.coordinate);
+      const neighbors = generateNeighbors(current.coordinate, elevationPoints);
 
       for (const neighbor of neighbors) {
         if (closedSet.some(coord => 
