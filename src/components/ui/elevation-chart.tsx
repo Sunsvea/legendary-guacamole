@@ -16,13 +16,24 @@ export function ElevationChart({ points, className = '' }: ElevationChartProps) 
     return null;
   }
 
+  // Debug elevation data
+  console.log('Elevation Chart Debug:', {
+    totalPoints: points.length,
+    firstElevation: points[0]?.elevation,
+    lastElevation: points[points.length - 1]?.elevation,
+    allElevations: points.map(p => p.elevation).slice(-5) // Last 5 elevations
+  });
+
   const maxElevation = Math.max(...points.map(p => p.elevation));
   const minElevation = Math.min(...points.map(p => p.elevation));
   const elevationRange = maxElevation - minElevation || 1;
 
-  const chartWidth = 800;
-  const chartHeight = 200;
-  const padding = 40;
+  // Dynamic chart sizing based on number of waypoints - made larger
+  const minWidth = 600;
+  const maxWidth = 1400;
+  const chartWidth = Math.min(maxWidth, Math.max(minWidth, points.length * 3)); // 3px per waypoint minimum
+  const chartHeight = 350; // Much taller for better visibility
+  const padding = 50; // More padding for labels
 
   const pathData = points
     .map((point, index) => {
@@ -72,7 +83,12 @@ export function ElevationChart({ points, className = '' }: ElevationChartProps) 
       </div>
       
       <div className="overflow-x-auto">
-        <svg width={chartWidth} height={chartHeight} className="w-full">
+        <svg 
+          width={chartWidth} 
+          height={chartHeight} 
+          className="min-w-full"
+          style={{ minWidth: `${chartWidth}px` }}
+        >
           {gridLines}
           
           <defs>
@@ -97,7 +113,17 @@ export function ElevationChart({ points, className = '' }: ElevationChartProps) 
           />
           
           {points.map((point, index) => {
-            if (index % Math.ceil(points.length / 10) !== 0 && index !== 0 && index !== points.length - 1) {
+            // Show markers more intelligently based on chart width and point count
+            const maxMarkers = Math.min(12, Math.floor(chartWidth / 80)); // Max 12 markers, min 80px apart for labels
+            const markerInterval = Math.max(1, Math.floor(points.length / maxMarkers));
+            
+            // Ensure end marker doesn't overlap with the last percentage marker
+            const isEndMarker = index === points.length - 1;
+            const isLastPercentageMarker = index === Math.floor((maxMarkers - 1) * markerInterval);
+            const shouldShowMarker = (index % markerInterval === 0 || index === 0 || isEndMarker) && 
+                                   !(isEndMarker && isLastPercentageMarker && markerInterval < 10);
+            
+            if (!shouldShowMarker) {
               return null;
             }
             
@@ -115,11 +141,13 @@ export function ElevationChart({ points, className = '' }: ElevationChartProps) 
                 />
                 <text
                   x={x}
-                  y={chartHeight - 5}
+                  y={chartHeight - 8}
                   textAnchor="middle"
-                  className="text-xs fill-gray-500"
+                  className="text-xs fill-gray-600 font-medium"
                 >
-                  {index === 0 ? UI_TEXT.START_CHART_LABEL : index === points.length - 1 ? UI_TEXT.END_CHART_LABEL : `${index}`}
+                  {index === 0 ? UI_TEXT.START_CHART_LABEL : 
+                   index === points.length - 1 ? UI_TEXT.END_CHART_LABEL : 
+                   `${Math.round((index / points.length) * 100)}%`}
                 </text>
               </g>
             );

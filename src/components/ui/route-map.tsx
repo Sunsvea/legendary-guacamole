@@ -110,6 +110,22 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
         }
       });
 
+      // Add black outline for colorblind accessibility
+      map.current.addLayer({
+        id: 'route-outline',
+        type: 'line',
+        source: 'route',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#000000',
+          'line-width': 8,
+          'line-opacity': 0.4
+        }
+      }, 'route-line'); // Insert below the main route line
+
       // Add elevation-colored segments
       points.forEach((point, index) => {
         if (index === 0) return;
@@ -129,22 +145,6 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
           }
         });
 
-        // Add white outline for better visibility
-        map.current!.addLayer({
-          id: `route-segment-outline-${index}`,
-          type: 'line',
-          source: `route-segment-${index}`,
-          layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-          },
-          paint: {
-            'line-color': '#ffffff',
-            'line-width': 8,
-            'line-opacity': 0.8
-          }
-        });
-
         // Add colored route segment
         map.current!.addLayer({
           id: `route-segment-${index}`,
@@ -156,8 +156,8 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
           },
           paint: {
             'line-color': segmentColor,
-            'line-width': 5,
-            'line-opacity': 1
+            'line-width': 6,
+            'line-opacity': 0.9
           }
         });
       });
