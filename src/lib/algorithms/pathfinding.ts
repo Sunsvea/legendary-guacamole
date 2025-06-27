@@ -222,15 +222,15 @@ function calculateMovementCost(from: Coordinate, to: Coordinate, trails: TrailSe
  * @returns Adaptive step size
  */
 function calculateAdaptiveStepSize(elevation: number, terrainComplexity: number): number {
-  const baseStepSize = 0.002; // ~220m at equator
-  const minStepSize = 0.0005; // ~55m for complex terrain
-  const maxStepSize = 0.004;  // ~440m for simple terrain
+  const baseStepSize = 0.005; // Increased to ~550m at equator for better trail finding
+  const minStepSize = 0.001;  // ~110m for complex terrain
+  const maxStepSize = 0.01;   // ~1100m for simple terrain
   
   // Reduce step size for complex terrain
-  const complexityFactor = 1 - (terrainComplexity * 0.75);
+  const complexityFactor = 1 - (terrainComplexity * 0.5); // Less reduction
   
   // Reduce step size at higher elevations (more dangerous terrain)
-  const elevationFactor = Math.max(0.5, 1 - (elevation / 8000)); // Normalize to 8000m max
+  const elevationFactor = Math.max(0.7, 1 - (elevation / 8000)); // Less reduction
   
   const adaptiveStepSize = baseStepSize * complexityFactor * elevationFactor;
   
@@ -306,9 +306,57 @@ function reconstructPath(node: PathfindingNode): RoutePoint[] {
  * @param trails Available trail segments
  * @returns Optimized route points with trail snapping
  */
+/**
+ * Create intermediate waypoints to guide route through trail network
+ */
+function createTrailGuidedWaypoints(start: Coordinate, end: Coordinate, trails: TrailSegment[]): Coordinate[] {
+  const waypoints = [start];
+  const maxWaypointDistance = 2.0; // 2km between waypoints
+  const trailSearchRadius = 1.0; // 1km search radius for trails
+  
+  // Filter usable trails (no water)
+  const usableTrails = trails.filter(t => !t.isWater);
+  
+  // Calculate total distance and number of waypoints needed
+  const totalDistance = calculateDistance(start, end);
+  const numWaypoints = Math.max(1, Math.floor(totalDistance / maxWaypointDistance));
+  
+  for (let i = 1; i < numWaypoints; i++) {
+    const progress = i / numWaypoints;
+    
+    // Linear interpolation point
+    const interpolatedPoint: Coordinate = {
+      lat: start.lat + (end.lat - start.lat) * progress,
+      lng: start.lng + (end.lng - start.lng) * progress,
+    };
+    
+    // Find nearest trail to this interpolated point
+    const nearestTrail = findNearestTrailPoint(interpolatedPoint, usableTrails, trailSearchRadius);
+    
+    if (nearestTrail) {
+      waypoints.push(nearestTrail.point);
+    } else {
+      waypoints.push(interpolatedPoint);
+    }
+  }
+  
+  waypoints.push(end);
+  return waypoints;
+}
+
 function optimizeRouteWithTrails(points: Coordinate[], trails: TrailSegment[]): RoutePoint[] {
+  // If we have trail data, create guided waypoints first
+  if (trails.length > 0) {
+    const startPoint = points[0];
+    const endPoint = points[points.length - 1];
+    const guidedWaypoints = createTrailGuidedWaypoints(startPoint, endPoint, trails);
+    
+    // Use guided waypoints as our base route
+    points = guidedWaypoints;
+  }
+  
   const optimizedPoints: RoutePoint[] = [];
-  const maxSnapDistance = 0.5; // Increased to 500m maximum snap distance
+  const maxSnapDistance = 1.0; // Increased to 1km maximum snap distance
   
   // Filter out water bodies for snapping
   const nonWaterTrails = trails.filter(trail => !trail.isWater);
@@ -325,29 +373,21 @@ function optimizeRouteWithTrails(points: Coordinate[], trails: TrailSegment[]): 
       nearest = trailNearest;
     }
     
-    // Aggressively snap to trails/roads
+    // Extremely aggressive snapping to trails/roads
     if (nearest && nearest.distance < maxSnapDistance) {
-      // Allow up to 100% distance increase for trail/road benefits
-      const originalDistance = i > 0 ? calculateDistance(points[i-1], point) : 0;
-      const newDistance = i > 0 ? calculateDistance(points[i-1], nearest.point) : 0;
-      
-      // Much more aggressive snapping - allow 2x distance increase
-      if (newDistance <= originalDistance * 2.0 || originalDistance < 0.1) {
-        optimizedPoints.push({
-          lat: nearest.point.lat,
-          lng: nearest.point.lng,
-          elevation: nearest.point.elevation || point.elevation || 0,
-        });
-        continue;
-      }
+      optimizedPoints.push({
+        lat: nearest.point.lat,
+        lng: nearest.point.lng,
+        elevation: nearest.point.elevation || point.elevation || 0,
+      });
+    } else {
+      // Keep original point if no trail snap found
+      optimizedPoints.push({
+        lat: point.lat,
+        lng: point.lng,
+        elevation: point.elevation || 0,
+      });
     }
-    
-    // Keep original point if no beneficial trail snap found
-    optimizedPoints.push({
-      lat: point.lat,
-      lng: point.lng,
-      elevation: point.elevation || 0,
-    });
   }
   
   return optimizedPoints;
@@ -356,7 +396,7 @@ function optimizeRouteWithTrails(points: Coordinate[], trails: TrailSegment[]): 
 export async function findOptimalRoute(
   start: Coordinate,
   end: Coordinate,
-  maxIterations: number = 1000
+  maxIterations: number = 5000
 ): Promise<RoutePoint[]> {
   try {
     console.log('Starting pathfinding from', start, 'to', end);
@@ -442,25 +482,27 @@ export async function findOptimalRoute(
 
     console.log(`Pathfinding completed with ${iterations} iterations, using fallback route`);
     
-    // Return optimized fallback route with trail data if available
-    if (trailNetwork.trails.length > 0) {
-      return optimizeRouteWithTrails(elevationPoints, trailNetwork.trails);
-    }
-    
-    return elevationPoints.map(point => ({
-      lat: point.lat,
-      lng: point.lng,
-      elevation: point.elevation || 0,
-    }));
+    // ALWAYS use trail optimization for fallback routes
+    console.log('Using trail-optimized fallback route');
+    return optimizeRouteWithTrails(elevationPoints, trailNetwork.trails);
 
   } catch (error) {
     console.error('Error in pathfinding:', error);
     
+    // Even on error, try to use trail data
+    console.log('Error fallback: attempting trail optimization');
     const fallbackPoints = await getElevationForRoute(start, end, 0.01);
-    return fallbackPoints.map(point => ({
-      lat: point.lat,
-      lng: point.lng,
-      elevation: point.elevation || 0,
-    }));
+    
+    try {
+      const emergencyTrailNetwork = await fetchTrailData(start, end);
+      return optimizeRouteWithTrails(fallbackPoints, emergencyTrailNetwork.trails);
+    } catch (trailError) {
+      console.error('Trail fallback also failed:', trailError);
+      return fallbackPoints.map(point => ({
+        lat: point.lat,
+        lng: point.lng,
+        elevation: point.elevation || 0,
+      }));
+    }
   }
 }
