@@ -28,6 +28,7 @@ export interface TrailNetwork {
     maxLng: number;
   };
   cacheTime: number;
+  spatialIndex?: Map<string, TrailSegment[]>; // Grid-based spatial index
 }
 
 /**
@@ -224,10 +225,17 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
     const processTime = performance.now() - processStart;
     console.log(`⚙️ Trail processing took ${processTime.toFixed(2)}ms`);
     
+    // Build spatial index for faster lookups
+    const indexStart = performance.now();
+    const spatialIndex = buildSpatialIndex(trails, bbox);
+    const indexTime = performance.now() - indexStart;
+    console.log(`🔍 Built spatial index in ${indexTime.toFixed(2)}ms`);
+    
     const network: TrailNetwork = {
       trails,
       bbox,
       cacheTime: Date.now(),
+      spatialIndex,
     };
     
     // Cache the result
@@ -248,6 +256,60 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
       cacheTime: Date.now(),
     };
   }
+}
+
+/**
+ * Build a spatial index for fast trail lookups
+ * Divides the area into a grid and indexes trails by grid cells
+ */
+function buildSpatialIndex(trails: TrailSegment[], bbox: { minLat: number; maxLat: number; minLng: number; maxLng: number }): Map<string, TrailSegment[]> {
+  const spatialIndex = new Map<string, TrailSegment[]>();
+  const gridSize = 0.01; // ~1km grid cells
+  
+  for (const trail of trails) {
+    for (const coord of trail.coordinates) {
+      // Calculate grid cell for this coordinate
+      const gridLat = Math.floor((coord.lat - bbox.minLat) / gridSize);
+      const gridLng = Math.floor((coord.lng - bbox.minLng) / gridSize);
+      const gridKey = `${gridLat}_${gridLng}`;
+      
+      // Add trail to this grid cell
+      if (!spatialIndex.has(gridKey)) {
+        spatialIndex.set(gridKey, []);
+      }
+      
+      const cellTrails = spatialIndex.get(gridKey)!;
+      if (!cellTrails.includes(trail)) {
+        cellTrails.push(trail);
+      }
+    }
+  }
+  
+  return spatialIndex;
+}
+
+/**
+ * Get trails near a coordinate using spatial index
+ */
+export function getTrailsNearCoordinate(coordinate: Coordinate, spatialIndex: Map<string, TrailSegment[]>, bbox: { minLat: number; maxLat: number; minLng: number; maxLng: number }): TrailSegment[] {
+  const gridSize = 0.01;
+  const gridLat = Math.floor((coordinate.lat - bbox.minLat) / gridSize);
+  const gridLng = Math.floor((coordinate.lng - bbox.minLng) / gridSize);
+  
+  const nearbyTrails = new Set<TrailSegment>();
+  
+  // Check current cell and surrounding cells (3x3 grid)
+  for (let dLat = -1; dLat <= 1; dLat++) {
+    for (let dLng = -1; dLng <= 1; dLng++) {
+      const cellKey = `${gridLat + dLat}_${gridLng + dLng}`;
+      const cellTrails = spatialIndex.get(cellKey);
+      if (cellTrails) {
+        cellTrails.forEach(trail => nearbyTrails.add(trail));
+      }
+    }
+  }
+  
+  return Array.from(nearbyTrails);
 }
 
 // Cache for distance calculations to avoid repeated work

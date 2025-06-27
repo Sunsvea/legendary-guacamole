@@ -1,7 +1,7 @@
 import { Coordinate, RoutePoint, PathfindingNode } from '@/types/route';
 import { calculateDistance } from '@/lib/utils';
 import { getElevationForRoute } from '@/lib/api/elevation';
-import { fetchTrailData, isOnTrail, findNearestTrailPoint, TrailSegment } from '@/lib/api/trails';
+import { fetchTrailData, isOnTrail, findNearestTrailPoint, getTrailsNearCoordinate, TrailSegment, TrailNetwork } from '@/lib/api/trails';
 
 class PriorityQueue {
   private items: PathfindingNode[] = [];
@@ -136,10 +136,10 @@ function calculateSlopeVariability(slope: number): number {
  * Enhanced movement cost calculation using Tobler's hiking function and terrain analysis
  * @param from Starting coordinate
  * @param to Destination coordinate  
- * @param trails Available trail data for on-trail detection
+ * @param trailNetwork Available trail network with spatial index
  * @returns Movement cost considering terrain, slope, and trail availability
  */
-function calculateMovementCost(from: Coordinate, to: Coordinate, trails: TrailSegment[] = []): number {
+function calculateMovementCost(from: Coordinate, to: Coordinate, trailNetwork?: TrailNetwork): number {
   const distance = calculateDistance(from, to); // in km
   const elevationDiff = (to.elevation || 0) - (from.elevation || 0); // in meters
   
@@ -155,46 +155,39 @@ function calculateMovementCost(from: Coordinate, to: Coordinate, trails: TrailSe
   // Base cost is time in hours converted to cost units
   let cost = timeCost * 10; // Scale factor for A* algorithm
   
-  // Simplified trail checking - cache results to avoid repeated calls
-  const fromOnTrail = isOnTrail(from, trails, 0.15);
-  const toOnTrail = isOnTrail(to, trails, 0.15);
+  // PERFORMANCE FIX: Use spatial index for fast nearby trail lookup
+  let nearbyTrails: TrailSegment[] = [];
+  if (trailNetwork && trailNetwork.spatialIndex) {
+    nearbyTrails = getTrailsNearCoordinate(from, trailNetwork.spatialIndex, trailNetwork.bbox).slice(0, 20);
+  } else if (trailNetwork) {
+    // Fallback: limit to first 50 trails for performance
+    nearbyTrails = trailNetwork.trails.slice(0, 50);
+  }
+  
+  // Quick trail checking with limited trails
+  const fromOnTrail = nearbyTrails.length > 0 ? isOnTrail(from, nearbyTrails, 0.15) : false;
+  const toOnTrail = nearbyTrails.length > 0 ? isOnTrail(to, nearbyTrails, 0.15) : false;
   const onTrailMovement = fromOnTrail && toOnTrail;
-  
-  // Quick check for water (only if both points are on trails)  
-  let nearWater = false;
-  if (onTrailMovement) {
-    nearWater = trails.some(trail => 
-      trail.isWater && (fromOnTrail || toOnTrail)
-    );
-  }
-  
-  if (nearWater) {
-    cost *= 50; // Massive penalty for crossing water
-  }
-  
-  // Simplified road check
-  const onRoad = onTrailMovement && trails.some(trail => 
-    trail.isRoad && isOnTrail(from, [trail], 0.1)
-  );
   
   // Apply terrain-based cost multiplier
   const slopeVariability = calculateSlopeVariability(slope);
   const terrainType = detectTerrainType(slope, slopeVariability);
-  let terrainMultiplier = TERRAIN_MULTIPLIERS[terrainType];
+  const terrainMultiplier = TERRAIN_MULTIPLIERS[terrainType];
   
-  // Aggressive trail/road preference
-  if (onRoad) {
-    // Roads get the biggest bonus
-    cost *= 0.3; // 70% cost reduction for roads
-  } else if (onTrailMovement) {
-    terrainMultiplier = TERRAIN_MULTIPLIERS[TerrainType.TRAIL];
+  // Simplified trail/road benefits
+  if (onTrailMovement) {
+    // Check if it's a road in our limited set
+    const onRoad = nearbyTrails.some(trail => 
+      trail.isRoad && isOnTrail(from, [trail], 0.1)
+    );
     
-    // Very aggressive trail bonus
-    cost *= 0.4; // 60% cost reduction for trails
+    if (onRoad) {
+      cost *= 0.3; // 70% cost reduction for roads
+    } else {
+      cost *= 0.4; // 60% cost reduction for trails
+    }
   } else {
     cost *= terrainMultiplier;
-    
-    // Heavy penalty for off-trail movement
     cost *= 2.0; // Double cost for going off established paths
   }
   
@@ -478,7 +471,7 @@ export async function findOptimalRoute(
         }
 
         const costStart = performance.now();
-        const gCost = current.gCost + calculateMovementCost(current.coordinate, neighbor, trailNetwork.trails);
+        const gCost = current.gCost + calculateMovementCost(current.coordinate, neighbor, trailNetwork);
         const costTime = performance.now() - costStart;
         
         if (iterations % 100 === 0 && costTime > 1) {
