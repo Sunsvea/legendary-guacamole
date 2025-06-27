@@ -34,7 +34,7 @@ export interface TrailNetwork {
 /**
  * Calculate bounding box around a route with padding
  */
-function calculateBoundingBox(start: Coordinate, end: Coordinate, paddingKm: number = 5): {
+function calculateBoundingBox(start: Coordinate, end: Coordinate, paddingKm: number = 2): {
   minLat: number;
   maxLat: number;
   minLng: number;
@@ -220,6 +220,12 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
         };
         
         trails.push(trail);
+        
+        // Limit trails for performance - prevent browser crashes
+        if (trails.length >= 5000) {
+          console.log(`⚠️ Trail limit reached (${trails.length}), stopping processing to prevent browser crash`);
+          break;
+        }
       }
     }
     const processTime = performance.now() - processStart;
