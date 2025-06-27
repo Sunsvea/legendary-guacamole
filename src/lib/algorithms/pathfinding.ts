@@ -1,6 +1,7 @@
 import { Coordinate, RoutePoint, PathfindingNode } from '@/types/route';
 import { calculateDistance } from '@/lib/utils';
 import { getElevationForRoute } from '@/lib/api/elevation';
+import { fetchTrailData, isOnTrail, findNearestTrailPoint, TrailSegment } from '@/lib/api/trails';
 
 class PriorityQueue {
   private items: PathfindingNode[] = [];
@@ -133,8 +134,12 @@ function calculateSlopeVariability(slope: number): number {
 
 /**
  * Enhanced movement cost calculation using Tobler's hiking function and terrain analysis
+ * @param from Starting coordinate
+ * @param to Destination coordinate  
+ * @param trails Available trail data for on-trail detection
+ * @returns Movement cost considering terrain, slope, and trail availability
  */
-function calculateMovementCost(from: Coordinate, to: Coordinate): number {
+function calculateMovementCost(from: Coordinate, to: Coordinate, trails: TrailSegment[] = []): number {
   const distance = calculateDistance(from, to); // in km
   const elevationDiff = (to.elevation || 0) - (from.elevation || 0); // in meters
   
@@ -150,11 +155,25 @@ function calculateMovementCost(from: Coordinate, to: Coordinate): number {
   // Base cost is time in hours converted to cost units
   let cost = timeCost * 10; // Scale factor for A* algorithm
   
+  // Check if movement is on established trails
+  const fromOnTrail = isOnTrail(from, trails, 0.05); // 50m tolerance
+  const toOnTrail = isOnTrail(to, trails, 0.05);
+  const onTrailMovement = fromOnTrail && toOnTrail;
+  
   // Apply terrain-based cost multiplier
   const slopeVariability = calculateSlopeVariability(slope);
   const terrainType = detectTerrainType(slope, slopeVariability);
-  const terrainMultiplier = TERRAIN_MULTIPLIERS[terrainType];
-  cost *= terrainMultiplier;
+  let terrainMultiplier = TERRAIN_MULTIPLIERS[terrainType];
+  
+  // Override terrain detection if on established trail
+  if (onTrailMovement) {
+    terrainMultiplier = TERRAIN_MULTIPLIERS[TerrainType.TRAIL];
+    
+    // Additional bonus for staying on trails
+    cost *= 0.7; // 30% cost reduction for trail usage
+  } else {
+    cost *= terrainMultiplier;
+  }
   
   // Add exponential penalty for dangerous slopes (>45° ≈ 100% grade)
   if (slopePercentage > 100) {
@@ -255,6 +274,48 @@ function reconstructPath(node: PathfindingNode): RoutePoint[] {
   return path;
 }
 
+/**
+ * Optimize a route by snapping points to nearby trails when beneficial
+ * @param points Original route points
+ * @param trails Available trail segments
+ * @returns Optimized route points with trail snapping
+ */
+function optimizeRouteWithTrails(points: Coordinate[], trails: TrailSegment[]): RoutePoint[] {
+  const optimizedPoints: RoutePoint[] = [];
+  const maxSnapDistance = 0.2; // 200m maximum snap distance
+  
+  for (let i = 0; i < points.length; i++) {
+    const point = points[i];
+    const nearest = findNearestTrailPoint(point, trails, maxSnapDistance);
+    
+    // Snap to trail if it's close and beneficial
+    if (nearest && nearest.distance < maxSnapDistance) {
+      // Only snap if it doesn't significantly increase total distance
+      const originalDistance = i > 0 ? calculateDistance(points[i-1], point) : 0;
+      const newDistance = i > 0 ? calculateDistance(points[i-1], nearest.point) : 0;
+      
+      // Allow up to 20% distance increase for trail benefits
+      if (newDistance <= originalDistance * 1.2) {
+        optimizedPoints.push({
+          lat: nearest.point.lat,
+          lng: nearest.point.lng,
+          elevation: nearest.point.elevation || point.elevation || 0,
+        });
+        continue;
+      }
+    }
+    
+    // Keep original point if no beneficial trail snap found
+    optimizedPoints.push({
+      lat: point.lat,
+      lng: point.lng,
+      elevation: point.elevation || 0,
+    });
+  }
+  
+  return optimizedPoints;
+}
+
 export async function findOptimalRoute(
   start: Coordinate,
   end: Coordinate,
@@ -263,7 +324,13 @@ export async function findOptimalRoute(
   try {
     console.log('Starting pathfinding from', start, 'to', end);
     
-    const elevationPoints = await getElevationForRoute(start, end, 0.005);
+    // Fetch both elevation and trail data in parallel
+    const [elevationPoints, trailNetwork] = await Promise.all([
+      getElevationForRoute(start, end, 0.005),
+      fetchTrailData(start, end)
+    ]);
+    
+    console.log(`Found ${trailNetwork.trails.length} trails in area`);
     
     if (elevationPoints.length === 0) {
       throw new Error('Failed to get elevation data');
@@ -319,7 +386,7 @@ export async function findOptimalRoute(
           neighbor.elevation = elevationPoint.elevation;
         }
 
-        const gCost = current.gCost + calculateMovementCost(current.coordinate, neighbor);
+        const gCost = current.gCost + calculateMovementCost(current.coordinate, neighbor, trailNetwork.trails);
         const hCost = calculateHeuristic(neighbor, endWithElevation);
 
         if (!openSet.contains(neighbor)) {
@@ -337,6 +404,11 @@ export async function findOptimalRoute(
     }
 
     console.log(`Pathfinding completed with ${iterations} iterations, using fallback route`);
+    
+    // Return optimized fallback route with trail data if available
+    if (trailNetwork.trails.length > 0) {
+      return optimizeRouteWithTrails(elevationPoints, trailNetwork.trails);
+    }
     
     return elevationPoints.map(point => ({
       lat: point.lat,
