@@ -395,21 +395,25 @@ export async function findOptimalRoute(
   end: Coordinate,
   maxIterations: number = 500
 ): Promise<RoutePoint[]> {
+  const startTime = performance.now();
   try {
-    console.log('Starting pathfinding from', start, 'to', end);
+    console.log('🚀 Starting pathfinding from', start, 'to', end);
     
     // Fetch both elevation and trail data in parallel
+    const dataFetchStart = performance.now();
     const [elevationPoints, trailNetwork] = await Promise.all([
       getElevationForRoute(start, end, 0.005),
       fetchTrailData(start, end)
     ]);
-    
-    console.log(`Found ${trailNetwork.trails.length} trails in area`);
+    const dataFetchTime = performance.now() - dataFetchStart;
+    console.log(`⏱️ Data fetch took ${dataFetchTime.toFixed(2)}ms`);
+    console.log(`📍 Found ${elevationPoints.length} elevation points, ${trailNetwork.trails.length} trails in area`);
     
     if (elevationPoints.length === 0) {
       throw new Error('Failed to get elevation data');
     }
 
+    const pathfindingStart = performance.now();
     const startWithElevation = elevationPoints[0];
     const endWithElevation = elevationPoints[elevationPoints.length - 1];
 
@@ -435,13 +439,26 @@ export async function findOptimalRoute(
       if (!current) break;
 
       if (calculateDistance(current.coordinate, endWithElevation) < 0.01) {
-        console.log(`Path found in ${iterations} iterations`);
-        return reconstructPath(current);
+        const pathfindingTime = performance.now() - pathfindingStart;
+        console.log(`✅ Path found in ${iterations} iterations (${pathfindingTime.toFixed(2)}ms)`);
+        const reconstructStart = performance.now();
+        const result = reconstructPath(current);
+        const reconstructTime = performance.now() - reconstructStart;
+        console.log(`🔄 Path reconstruction took ${reconstructTime.toFixed(2)}ms`);
+        const totalTime = performance.now() - startTime;
+        console.log(`🏁 Total pathfinding time: ${totalTime.toFixed(2)}ms`);
+        return result;
       }
 
       closedSet.push(current.coordinate);
 
+      const neighborsStart = performance.now();
       const neighbors = generateNeighbors(current.coordinate, elevationPoints);
+      const neighborsTime = performance.now() - neighborsStart;
+      
+      if (iterations % 100 === 0) {
+        console.log(`⏳ Iteration ${iterations}, neighbors generation: ${neighborsTime.toFixed(2)}ms`);
+      }
 
       for (const neighbor of neighbors) {
         if (closedSet.some(coord => 
@@ -460,7 +477,14 @@ export async function findOptimalRoute(
           neighbor.elevation = elevationPoint.elevation;
         }
 
+        const costStart = performance.now();
         const gCost = current.gCost + calculateMovementCost(current.coordinate, neighbor, trailNetwork.trails);
+        const costTime = performance.now() - costStart;
+        
+        if (iterations % 100 === 0 && costTime > 1) {
+          console.log(`💰 Cost calculation took ${costTime.toFixed(2)}ms for iteration ${iterations}`);
+        }
+        
         const hCost = calculateHeuristic(neighbor, endWithElevation);
 
         if (!openSet.contains(neighbor)) {
@@ -477,11 +501,18 @@ export async function findOptimalRoute(
       }
     }
 
-    console.log(`Pathfinding completed with ${iterations} iterations, using fallback route`);
+    const pathfindingTime = performance.now() - pathfindingStart;
+    console.log(`❌ Pathfinding completed with ${iterations} iterations (${pathfindingTime.toFixed(2)}ms), using fallback route`);
     
     // ALWAYS use trail optimization for fallback routes
-    console.log('Using trail-optimized fallback route');
-    return optimizeRouteWithTrails(elevationPoints, trailNetwork.trails);
+    const fallbackStart = performance.now();
+    console.log('🔄 Using trail-optimized fallback route');
+    const result = optimizeRouteWithTrails(elevationPoints, trailNetwork.trails);
+    const fallbackTime = performance.now() - fallbackStart;
+    console.log(`🔄 Trail optimization took ${fallbackTime.toFixed(2)}ms`);
+    const totalTime = performance.now() - startTime;
+    console.log(`🏁 Total time (with fallback): ${totalTime.toFixed(2)}ms`);
+    return result;
 
   } catch (error) {
     console.error('Error in pathfinding:', error);

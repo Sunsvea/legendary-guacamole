@@ -142,18 +142,25 @@ function parseTrailDifficulty(tags: Record<string, string>): 'easy' | 'moderate'
  * Fetch trail data from OpenStreetMap using Overpass API
  */
 export async function fetchTrailData(start: Coordinate, end: Coordinate): Promise<TrailNetwork> {
+  const fetchStart = performance.now();
   const bbox = calculateBoundingBox(start, end);
   const cacheKey = getCacheKey(bbox);
   
   // Check cache first
   const cached = trailCache.get(cacheKey);
   if (cached && isCacheValid(cached)) {
-    console.log('Using cached trail data');
+    const cacheTime = performance.now() - fetchStart;
+    console.log(`🗄️ Using cached trail data (${cacheTime.toFixed(2)}ms)`);
     return cached;
   }
   
   try {
+    const queryStart = performance.now();
     const query = buildOverpassQuery(bbox);
+    const queryTime = performance.now() - queryStart;
+    console.log(`🔍 Built OSM query in ${queryTime.toFixed(2)}ms`);
+    
+    const networkStart = performance.now();
     const response = await fetch('https://overpass-api.de/api/interpreter', {
       method: 'POST',
       headers: {
@@ -161,12 +168,19 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
       },
       body: `data=${encodeURIComponent(query)}`,
     });
+    const networkTime = performance.now() - networkStart;
+    console.log(`🌐 OSM API request took ${networkTime.toFixed(2)}ms`);
     
     if (!response.ok) {
       throw new Error(`Overpass API error: ${response.status}`);
     }
     
+    const parseStart = performance.now();
     const data = await response.json();
+    const parseTime = performance.now() - parseStart;
+    console.log(`📝 JSON parsing took ${parseTime.toFixed(2)}ms, found ${data.elements?.length || 0} elements`);
+    
+    const processStart = performance.now();
     const trails: TrailSegment[] = [];
     
     // Process OSM ways into trail segments
@@ -207,6 +221,8 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
         trails.push(trail);
       }
     }
+    const processTime = performance.now() - processStart;
+    console.log(`⚙️ Trail processing took ${processTime.toFixed(2)}ms`);
     
     const network: TrailNetwork = {
       trails,
@@ -217,11 +233,13 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
     // Cache the result
     trailCache.set(cacheKey, network);
     
-    console.log(`Fetched ${trails.length} trail segments from OSM`);
+    const totalTime = performance.now() - fetchStart;
+    console.log(`🗺️ Fetched ${trails.length} trail segments from OSM (total: ${totalTime.toFixed(2)}ms)`);
     return network;
     
   } catch (error) {
-    console.error('Error fetching trail data:', error);
+    const errorTime = performance.now() - fetchStart;
+    console.error(`❌ Error fetching trail data after ${errorTime.toFixed(2)}ms:`, error);
     
     // Return empty network on error
     return {
