@@ -36,6 +36,7 @@ export const STYLES = {
 
   // Button styles
   BUTTON_FLEX_COL_SM_ROW: 'flex flex-col sm:flex-row gap-2',
+  BUTTON_SECONDARY: 'px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md border border-gray-300 transition-colors',
 
   // Input groups
   INPUT_GROUP: 'space-y-2',
