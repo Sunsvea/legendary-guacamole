@@ -6,7 +6,9 @@ import { RouteInputForm } from '@/components/forms/route-input-form';
 import { ElevationChart } from '@/components/ui/elevation-chart';
 import { RouteMap } from '@/components/ui/route-map';
 import { RouteSummaryCard } from '@/components/ui/semantic/route-summary-card';
+import { PathfindingControls } from '@/components/ui/pathfinding-controls';
 import { Coordinate, Route } from '@/types/route';
+import { PathfindingOptions, DEFAULT_PATHFINDING_OPTIONS } from '@/types/pathfinding';
 import { findOptimalRoute } from '@/lib/algorithms/pathfinding';
 import { calculateDistance, calculateElevationGain } from '@/lib/utils';
 import { UI_TEXT } from '@/constants/ui-text';
@@ -15,13 +17,14 @@ import { STYLES } from '@/constants/styles';
 export default function Home() {
   const [currentRoute, setCurrentRoute] = useState<Route | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pathfindingOptions, setPathfindingOptions] = useState<PathfindingOptions>(DEFAULT_PATHFINDING_OPTIONS);
 
   const handleRouteSubmit = async (start: Coordinate, end: Coordinate) => {
     setLoading(true);
     try {
       console.log('Planning route from:', start, 'to:', end);
       
-      const routePoints = await findOptimalRoute(start, end);
+      const routePoints = await findOptimalRoute(start, end, pathfindingOptions);
       
       if (routePoints.length === 0) {
         throw new Error(UI_TEXT.NO_ROUTE_FOUND);
@@ -43,8 +46,10 @@ export default function Home() {
       };
 
       const estimateTime = (distance: number, elevationGain: number) => {
-        const baseTime = distance / 3;
-        const elevationTime = elevationGain / 300;
+        // Use realistic hiking speeds: 4-5 km/h on flat terrain
+        const baseTime = distance / 4.5; // 4.5 km/h base speed
+        // Add time for elevation gain: Naismith's rule (10 minutes per 100m elevation)
+        const elevationTime = elevationGain / 600; // 600m per hour climbing rate
         return Math.round(baseTime + elevationTime);
       };
 
@@ -87,14 +92,17 @@ export default function Home() {
 
           <RouteInputForm onRouteSubmit={handleRouteSubmit} loading={loading} />
 
+          <PathfindingControls 
+            options={pathfindingOptions}
+            onOptionsChange={setPathfindingOptions}
+            isCalculating={loading}
+          />
+
           {currentRoute && (
             <>
               <RouteSummaryCard route={currentRoute} />
-
-              <div className={STYLES.GRID_1_LG_2}>
-                <RouteMap points={currentRoute.points} />
-                <ElevationChart points={currentRoute.points} />
-              </div>
+              <RouteMap points={currentRoute.points} />
+              <ElevationChart points={currentRoute.points} />
             </>
           )}
         </div>
