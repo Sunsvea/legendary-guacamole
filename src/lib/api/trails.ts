@@ -232,8 +232,35 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
   }
 }
 
+// Cache for distance calculations to avoid repeated work
+const distanceCache = new Map<string, number>();
+
 /**
- * Find the nearest trail point to a given coordinate
+ * Cached distance calculation
+ */
+function cachedCalculateDistance(coord1: Coordinate, coord2: Coordinate): number {
+  const key = `${coord1.lat.toFixed(4)}_${coord1.lng.toFixed(4)}_${coord2.lat.toFixed(4)}_${coord2.lng.toFixed(4)}`;
+  
+  if (distanceCache.has(key)) {
+    return distanceCache.get(key)!;
+  }
+  
+  const distance = calculateDistance(coord1, coord2);
+  distanceCache.set(key, distance);
+  
+  // Limit cache size
+  if (distanceCache.size > 1000) {
+    const firstKey = distanceCache.keys().next().value;
+    if (firstKey) {
+      distanceCache.delete(firstKey);
+    }
+  }
+  
+  return distance;
+}
+
+/**
+ * Find the nearest trail point to a given coordinate (optimized)
  */
 export function findNearestTrailPoint(
   coordinate: Coordinate, 
@@ -242,14 +269,30 @@ export function findNearestTrailPoint(
 ): { trail: TrailSegment; point: Coordinate; distance: number } | null {
   let nearest: { trail: TrailSegment; point: Coordinate; distance: number } | null = null;
   
+  // Early exit if no trails
+  if (trails.length === 0) return null;
+  
   for (const trail of trails) {
-    for (const point of trail.coordinates) {
-      const distance = calculateDistance(coordinate, point);
+    // Skip trails with no coordinates
+    if (!trail.coordinates || trail.coordinates.length === 0) continue;
+    
+    // Sample every few points for performance instead of checking every point
+    const sampleRate = Math.max(1, Math.floor(trail.coordinates.length / 10));
+    
+    for (let i = 0; i < trail.coordinates.length; i += sampleRate) {
+      const point = trail.coordinates[i];
+      const distance = cachedCalculateDistance(coordinate, point);
       
       if (distance <= maxDistanceKm && (!nearest || distance < nearest.distance)) {
         nearest = { trail, point, distance };
+        
+        // Early exit if we find a very close point
+        if (distance < 0.05) break; // 50m
       }
     }
+    
+    // If we found something very close, no need to check more trails
+    if (nearest && nearest.distance < 0.05) break;
   }
   
   return nearest;
@@ -273,13 +316,36 @@ function calculateDistance(coord1: Coordinate, coord2: Coordinate): number {
   return R * c;
 }
 
+// Cache for trail proximity checks
+const trailProximityCache = new Map<string, boolean>();
+
 /**
- * Check if a coordinate is close to any trail
+ * Check if a coordinate is close to any trail (optimized with caching)
  */
 export function isOnTrail(
   coordinate: Coordinate, 
   trails: TrailSegment[], 
   maxDistanceKm: number = 0.1
 ): boolean {
-  return findNearestTrailPoint(coordinate, trails, maxDistanceKm) !== null;
+  // Create cache key
+  const key = `${coordinate.lat.toFixed(4)}_${coordinate.lng.toFixed(4)}_${maxDistanceKm.toFixed(2)}_${trails.length}`;
+  
+  if (trailProximityCache.has(key)) {
+    return trailProximityCache.get(key)!;
+  }
+  
+  const result = findNearestTrailPoint(coordinate, trails, maxDistanceKm) !== null;
+  
+  // Cache the result
+  trailProximityCache.set(key, result);
+  
+  // Limit cache size
+  if (trailProximityCache.size > 500) {
+    const firstKey = trailProximityCache.keys().next().value;
+    if (firstKey) {
+      trailProximityCache.delete(firstKey);
+    }
+  }
+  
+  return result;
 }

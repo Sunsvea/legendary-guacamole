@@ -155,29 +155,26 @@ function calculateMovementCost(from: Coordinate, to: Coordinate, trails: TrailSe
   // Base cost is time in hours converted to cost units
   let cost = timeCost * 10; // Scale factor for A* algorithm
   
-  // Check for water bodies and apply massive penalty
-  const nearWater = trails.some(trail => 
-    trail.isWater && (
-      isOnTrail(from, [trail], 0.1) || 
-      isOnTrail(to, [trail], 0.1)
-    )
-  );
+  // Simplified trail checking - cache results to avoid repeated calls
+  const fromOnTrail = isOnTrail(from, trails, 0.15);
+  const toOnTrail = isOnTrail(to, trails, 0.15);
+  const onTrailMovement = fromOnTrail && toOnTrail;
+  
+  // Quick check for water (only if both points are on trails)  
+  let nearWater = false;
+  if (onTrailMovement) {
+    nearWater = trails.some(trail => 
+      trail.isWater && (fromOnTrail || toOnTrail)
+    );
+  }
   
   if (nearWater) {
     cost *= 50; // Massive penalty for crossing water
   }
   
-  // Check if movement is on established trails/roads
-  const fromOnTrail = isOnTrail(from, trails, 0.15); // Increased to 150m tolerance
-  const toOnTrail = isOnTrail(to, trails, 0.15);
-  const onTrailMovement = fromOnTrail && toOnTrail;
-  
-  // Check if on roads specifically
-  const onRoad = trails.some(trail => 
-    trail.isRoad && (
-      isOnTrail(from, [trail], 0.1) && 
-      isOnTrail(to, [trail], 0.1)
-    )
+  // Simplified road check
+  const onRoad = onTrailMovement && trails.some(trail => 
+    trail.isRoad && isOnTrail(from, [trail], 0.1)
   );
   
   // Apply terrain-based cost multiplier
@@ -311,15 +308,15 @@ function reconstructPath(node: PathfindingNode): RoutePoint[] {
  */
 function createTrailGuidedWaypoints(start: Coordinate, end: Coordinate, trails: TrailSegment[]): Coordinate[] {
   const waypoints = [start];
-  const maxWaypointDistance = 2.0; // 2km between waypoints
-  const trailSearchRadius = 1.0; // 1km search radius for trails
+  const maxWaypointDistance = 5.0; // Increased to 5km to reduce waypoints
+  const trailSearchRadius = 2.0; // 2km search radius for trails
   
-  // Filter usable trails (no water)
-  const usableTrails = trails.filter(t => !t.isWater);
+  // Filter usable trails (no water) and limit to first 20 for performance
+  const usableTrails = trails.filter(t => !t.isWater).slice(0, 20);
   
   // Calculate total distance and number of waypoints needed
   const totalDistance = calculateDistance(start, end);
-  const numWaypoints = Math.max(1, Math.floor(totalDistance / maxWaypointDistance));
+  const numWaypoints = Math.min(3, Math.max(1, Math.floor(totalDistance / maxWaypointDistance))); // Max 3 waypoints
   
   for (let i = 1; i < numWaypoints; i++) {
     const progress = i / numWaypoints;
@@ -396,7 +393,7 @@ function optimizeRouteWithTrails(points: Coordinate[], trails: TrailSegment[]): 
 export async function findOptimalRoute(
   start: Coordinate,
   end: Coordinate,
-  maxIterations: number = 5000
+  maxIterations: number = 500
 ): Promise<RoutePoint[]> {
   try {
     console.log('Starting pathfinding from', start, 'to', end);
