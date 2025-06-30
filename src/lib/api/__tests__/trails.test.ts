@@ -572,7 +572,7 @@ describe('trails API', () => {
     it('should handle trails with no coordinates', () => {
       const emptyTrails: TrailSegment[] = [
         { id: '1', coordinates: [] },
-        { id: '2', coordinates: undefined as any },
+        { id: '2', coordinates: undefined as unknown as Coordinate[] },
       ];
 
       const result = findNearestTrailPoint(coordinate, emptyTrails);

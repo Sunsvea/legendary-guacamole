@@ -214,7 +214,7 @@ export function RouteMap({ points, className = '', onMapReady }: RouteMapProps) 
         map.current = null;
       }
     };
-  }, [points, getElevationColor]);
+  }, [points, getElevationColor, onMapReady]);
 
   if (!points || points.length === 0) {
     return null;

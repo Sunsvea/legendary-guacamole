@@ -514,7 +514,7 @@ describe('elevation API', () => {
 
     it('should handle fetch being undefined/unavailable', async () => {
       const originalFetch = global.fetch;
-      delete (global as any).fetch;
+      delete (global as unknown as { fetch?: unknown }).fetch;
 
       try {
         await expect(getElevation([{ lat: 46.5503, lng: 7.9822 }])).rejects.toThrow();

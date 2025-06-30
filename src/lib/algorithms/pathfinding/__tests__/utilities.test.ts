@@ -15,7 +15,7 @@ import {
   STEP_SIZE_CONSTANTS
 } from '../utilities';
 
-import { Coordinate, RoutePoint, PathfindingNode } from '@/types/route';
+import { Coordinate, PathfindingNode } from '@/types/route';
 import { PathfindingOptions, DEFAULT_PATHFINDING_OPTIONS } from '@/types/pathfinding';
 import { TrailSegment, TrailNetwork } from '@/lib/api/trails';
 
@@ -34,7 +34,7 @@ jest.mock('@/lib/utils', () => ({
 }));
 
 jest.mock('@/lib/api/trails', () => ({
-  isOnTrail: jest.fn((coord: Coordinate, trails: TrailSegment[], radius: number) => {
+  isOnTrail: jest.fn((coord: Coordinate, trails: TrailSegment[]) => {
     return trails.some(trail => 
       trail.coordinates.some(tc => 
         Math.abs(tc.lat - coord.lat) < 0.001 && Math.abs(tc.lng - coord.lng) < 0.001
@@ -42,7 +42,7 @@ jest.mock('@/lib/api/trails', () => ({
     );
   }),
   findNearestTrailPoint: jest.fn((coord: Coordinate, trails: TrailSegment[], maxDistance: number) => {
-    const closest = trails.reduce((best: any, trail) => {
+    const closest = trails.reduce((best: unknown, trail) => {
       const closestPoint = trail.coordinates.reduce((closest, tc) => {
         const dist = Math.abs(tc.lat - coord.lat) + Math.abs(tc.lng - coord.lng);
         return dist < closest.distance ? { point: tc, distance: dist } : closest;
@@ -53,7 +53,7 @@ jest.mock('@/lib/api/trails', () => ({
     
     return closest.distance < maxDistance ? closest : null;
   }),
-  getTrailsNearCoordinate: jest.fn((coord: Coordinate, spatialIndex: any, bbox: any) => {
+  getTrailsNearCoordinate: jest.fn(() => {
     return []; // Default empty for spatial index tests
   })
 }));
@@ -78,6 +78,7 @@ jest.mock('@/lib/api/elevation', () => ({
 }));
 
 describe('calculateHeuristic', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockCalculateDistance = require('@/lib/utils').calculateDistance;
 
   beforeEach(() => {
@@ -123,8 +124,11 @@ describe('calculateHeuristic', () => {
 });
 
 describe('calculateMovementCost', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockCalculateDistance = require('@/lib/utils').calculateDistance;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockCalculateSlope = require('@/lib/algorithms/pathfinding/terrain/terrain-analyzer').calculateSlope;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockCalculateHikingSpeed = require('@/lib/algorithms/pathfinding/terrain/terrain-analyzer').calculateHikingSpeed;
 
   beforeEach(() => {
@@ -173,6 +177,7 @@ describe('calculateMovementCost', () => {
       cacheTime: Date.now()
     };
     
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mockIsOnTrail = require('@/lib/api/trails').isOnTrail;
     mockIsOnTrail.mockReturnValue(true);
     
@@ -200,6 +205,7 @@ describe('calculateMovementCost', () => {
       cacheTime: Date.now()
     };
     
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mockIsOnTrail = require('@/lib/api/trails').isOnTrail;
     mockIsOnTrail.mockReturnValue(true);
     
@@ -279,6 +285,7 @@ describe('calculateAdaptiveStepSize', () => {
 });
 
 describe('generateNeighbors', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockCalculateTerrainComplexity = require('@/lib/algorithms/pathfinding/terrain/terrain-analyzer').calculateTerrainComplexity;
 
   beforeEach(() => {
@@ -433,7 +440,9 @@ describe('reconstructPath', () => {
 });
 
 describe('optimizeRouteWithTrails', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockGetElevationForRoute = require('@/lib/api/elevation').getElevationForRoute;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockFindNearestTrailPoint = require('@/lib/api/trails').findNearestTrailPoint;
 
   beforeEach(() => {

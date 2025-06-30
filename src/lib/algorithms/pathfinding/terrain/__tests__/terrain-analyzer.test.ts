@@ -299,6 +299,7 @@ describe('calculateSlopeVariability', () => {
       { lat: 47.0010, lng: 8.0010, elevation: 1020 }
     ];
 
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mockCalculateDistance = require('@/lib/utils').calculateDistance;
     mockCalculateDistance.mockReturnValue(0.005); // Within nearby threshold
 
@@ -415,6 +416,7 @@ describe('getTerrainMultiplier', () => {
 });
 
 describe('analyzeTerrainBetweenPoints', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockCalculateDistance = require('@/lib/utils').calculateDistance;
 
   beforeEach(() => {
@@ -500,6 +502,7 @@ describe('analyzeTerrainBetweenPoints', () => {
 });
 
 describe('calculateTerrainComplexity', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockCalculateDistance = require('@/lib/utils').calculateDistance;
 
   beforeEach(() => {
@@ -591,6 +594,7 @@ describe('calculateTerrainComplexity', () => {
 
     mockCalculateDistance.mockReturnValue(0.015); // Within custom radius
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const complexity = calculateTerrainComplexity(params);
 
     expect(mockCalculateDistance).toHaveBeenCalledWith(
@@ -650,21 +654,21 @@ describe('validateTerrainAnalysisParams', () => {
   it('throws error for missing coordinates', () => {
     const validCoord: Coordinate = { lat: 47.0000, lng: 8.0000 };
 
-    expect(() => validateTerrainAnalysisParams(null as any, validCoord))
+    expect(() => validateTerrainAnalysisParams(null as unknown, validCoord))
       .toThrow('Both from and to coordinates are required');
 
-    expect(() => validateTerrainAnalysisParams(validCoord, undefined as any))
+    expect(() => validateTerrainAnalysisParams(validCoord, undefined as unknown))
       .toThrow('Both from and to coordinates are required');
   });
 
   it('throws error for invalid numeric values', () => {
-    const invalidLat: Coordinate = { lat: 'invalid' as any, lng: 8.0000 };
+    const invalidLat: Coordinate = { lat: 'invalid' as unknown as number, lng: 8.0000 };
     const validCoord: Coordinate = { lat: 47.0000, lng: 8.0000 };
 
     expect(() => validateTerrainAnalysisParams(invalidLat, validCoord))
       .toThrow('Coordinates must have valid numeric lat/lng values');
 
-    const invalidLng: Coordinate = { lat: 47.0000, lng: 'invalid' as any };
+    const invalidLng: Coordinate = { lat: 47.0000, lng: 'invalid' as unknown as number };
     expect(() => validateTerrainAnalysisParams(validCoord, invalidLng))
       .toThrow('Coordinates must have valid numeric lat/lng values');
   });
@@ -706,6 +710,7 @@ describe('validateTerrainAnalysisParams', () => {
 
 describe('Constants and Thresholds', () => {
   it('has consistent terrain multiplier ordering', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const multipliers = Object.values(TERRAIN_MULTIPLIERS);
     expect(TERRAIN_MULTIPLIERS[TerrainType.TRAIL]).toBeLessThan(TERRAIN_MULTIPLIERS[TerrainType.VEGETATION]);
     expect(TERRAIN_MULTIPLIERS[TerrainType.VEGETATION]).toBeLessThan(TERRAIN_MULTIPLIERS[TerrainType.ROCK]);

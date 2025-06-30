@@ -490,6 +490,7 @@ describe('PriorityQueue', () => {
         fCost: 10
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const goalNode: PathfindingNode = {
         coordinate: { lat: 47.0100, lng: 8.0100 },
         gCost: 15,
@@ -563,6 +564,7 @@ describe('PriorityQueue', () => {
       }
 
       // Dequeue all nodes
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const dequeueStart = Date.now();
       const dequeuedNodes: PathfindingNode[] = [];
       

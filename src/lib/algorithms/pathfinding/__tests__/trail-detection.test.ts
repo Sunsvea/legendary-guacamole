@@ -19,7 +19,6 @@ import {
   calculateTrailBearing,
   findClosestPointOnTrail,
   findConnectedTrail,
-  TRAIL_CONSTANTS
 } from '../trail-detection';
 
 import { Coordinate } from '@/types/route';
@@ -37,6 +36,7 @@ jest.mock('@/lib/utils', () => ({
 }));
 
 describe('isObviousLinearRoute', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockCalculateDistance = require('@/lib/utils').calculateDistance;
 
   beforeEach(() => {
@@ -160,6 +160,7 @@ describe('isObviousLinearRoute', () => {
 });
 
 describe('createForcedLinearRoute', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockCalculateDistance = require('@/lib/utils').calculateDistance;
 
   beforeEach(() => {
@@ -252,6 +253,7 @@ describe('createForcedLinearRoute', () => {
 });
 
 describe('createSimpleTrailRoute', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockCalculateDistance = require('@/lib/utils').calculateDistance;
 
   beforeEach(() => {
@@ -395,6 +397,7 @@ describe('createSimpleTrailRoute', () => {
 });
 
 describe('interpolateWaypoints', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockCalculateDistance = require('@/lib/utils').calculateDistance;
 
   beforeEach(() => {
@@ -469,6 +472,7 @@ describe('interpolateWaypoints', () => {
 });
 
 describe('createSimpleTrailGuidedWaypoints', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockCalculateDistance = require('@/lib/utils').calculateDistance;
 
   beforeEach(() => {
@@ -545,6 +549,7 @@ describe('createSimpleTrailGuidedWaypoints', () => {
 });
 
 describe('findDirectTrailPath', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockCalculateDistance = require('@/lib/utils').calculateDistance;
 
   beforeEach(() => {
@@ -636,7 +641,8 @@ describe('extractTrailSegment', () => {
     };
 
     // Mock distances to return closest points
-    const mockCalculateDistance = require('@/lib/utils').calculateDistance;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mockCalculateDistance = require('@/lib/utils').calculateDistance;
     mockCalculateDistance
       .mockReturnValueOnce(1.0)  // distance from start to coord[0]
       .mockReturnValueOnce(1.0)  // distance from end to coord[0]
@@ -671,7 +677,8 @@ describe('extractTrailSegment', () => {
     };
 
     // Mock distances for this test
-    const mockCalculateDistance = require('@/lib/utils').calculateDistance;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mockCalculateDistance = require('@/lib/utils').calculateDistance;
     mockCalculateDistance
       .mockReturnValueOnce(0.5)  // distance from start to coord[0]
       .mockReturnValueOnce(0.1)  // distance from end to coord[0] - closest to end
@@ -704,6 +711,7 @@ describe('extractTrailSegment', () => {
 });
 
 describe('findTrailChain', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockCalculateDistance = require('@/lib/utils').calculateDistance;
 
   beforeEach(() => {
@@ -768,7 +776,8 @@ describe('isLinearRoute', () => {
     const start: Coordinate = { lat: 47.0000, lng: 8.0000 };
     const end: Coordinate = { lat: 47.0010, lng: 8.0010 };
 
-    const mockCalculateDistance = require('@/lib/utils').calculateDistance;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mockCalculateDistance = require('@/lib/utils').calculateDistance;
     mockCalculateDistance.mockReturnValue(1.0); // 1km - good distance
 
     const startTrails = [
@@ -787,7 +796,8 @@ describe('isLinearRoute', () => {
     const start: Coordinate = { lat: 47.0000, lng: 8.0000 };
     const end: Coordinate = { lat: 47.0001, lng: 8.0001 };
 
-    const mockCalculateDistance = require('@/lib/utils').calculateDistance;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mockCalculateDistance = require('@/lib/utils').calculateDistance;
     mockCalculateDistance.mockReturnValue(0.3); // Too short
 
     const result = isLinearRoute(start, end, [], []);
@@ -799,7 +809,8 @@ describe('isLinearRoute', () => {
     const start: Coordinate = { lat: 47.0000, lng: 8.0000 };
     const end: Coordinate = { lat: 47.0030, lng: 8.0030 };
 
-    const mockCalculateDistance = require('@/lib/utils').calculateDistance;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mockCalculateDistance = require('@/lib/utils').calculateDistance;
     mockCalculateDistance.mockReturnValue(3.0); // Too long
 
     const result = isLinearRoute(start, end, [], []);
@@ -811,7 +822,8 @@ describe('isLinearRoute', () => {
     const start: Coordinate = { lat: 47.0000, lng: 8.0000 };
     const end: Coordinate = { lat: 47.0010, lng: 8.0010 };
 
-    const mockCalculateDistance = require('@/lib/utils').calculateDistance;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mockCalculateDistance = require('@/lib/utils').calculateDistance;
     mockCalculateDistance.mockReturnValue(1.0);
 
     const roadTrails = [
@@ -825,6 +837,7 @@ describe('isLinearRoute', () => {
 });
 
 describe('createLinearTrailPath', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const mockCalculateDistance = require('@/lib/utils').calculateDistance;
 
   beforeEach(() => {
@@ -961,7 +974,8 @@ describe('Helper Functions', () => {
   });
 
   describe('findClosestPointOnTrail', () => {
-    const mockCalculateDistance = require('@/lib/utils').calculateDistance;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mockCalculateDistance = require('@/lib/utils').calculateDistance;
 
     beforeEach(() => {
       jest.clearAllMocks();
@@ -1006,7 +1020,8 @@ describe('Helper Functions', () => {
   });
 
   describe('findConnectedTrail', () => {
-    const mockCalculateDistance = require('@/lib/utils').calculateDistance;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mockCalculateDistance = require('@/lib/utils').calculateDistance;
 
     beforeEach(() => {
       jest.clearAllMocks();

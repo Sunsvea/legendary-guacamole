@@ -84,17 +84,17 @@ export default function Home() {
     }
   };
 
-  // Create a debounced version for route submission
-  let debouncedSubmit: ((start: Coordinate, end: Coordinate) => void) | null = null;
+  // Create a debounced version for route submission using useRef
+  const debouncedSubmitRef = useRef<((start: Coordinate, end: Coordinate) => void) | null>(null);
   
   const handleRouteSubmit = useCallback(
     (start: Coordinate, end: Coordinate) => {
-      if (!debouncedSubmit) {
-        debouncedSubmit = debounce(handleRouteSubmitInternal, 1000);
+      if (!debouncedSubmitRef.current) {
+        debouncedSubmitRef.current = debounce(handleRouteSubmitInternal, 1000);
       }
-      debouncedSubmit(start, end);
+      debouncedSubmitRef.current(start, end);
     },
-    [pathfindingOptions]
+    [pathfindingOptions, handleRouteSubmitInternal]
   );
 
   const handleMapReady = useCallback(() => {
@@ -126,7 +126,7 @@ export default function Home() {
                   Work in Progress
                 </h3>
                 <p className="mt-1 text-sm text-yellow-700">
-                  This is an experimental project. The pathfinding algorithm is still under development and may generate inefficient routes that don't properly follow established trails or roads. Results should be used for demonstration purposes only and not for actual hiking navigation.
+                  This is an experimental project. The pathfinding algorithm is still under development and may generate inefficient routes that don&apos;t properly follow established trails or roads. Results should be used for demonstration purposes only and not for actual hiking navigation.
                 </p>
               </div>
             </div>
