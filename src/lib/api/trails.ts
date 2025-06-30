@@ -34,7 +34,7 @@ export interface TrailNetwork {
 /**
  * Calculate bounding box around a route with padding
  */
-function calculateBoundingBox(start: Coordinate, end: Coordinate, paddingKm: number = 2): {
+export function calculateBoundingBox(start: Coordinate, end: Coordinate, paddingKm: number = 2): {
   minLat: number;
   maxLat: number;
   minLng: number;
@@ -55,7 +55,7 @@ function calculateBoundingBox(start: Coordinate, end: Coordinate, paddingKm: num
 /**
  * Build Overpass API query for hiking trails
  */
-function buildOverpassQuery(bbox: { minLat: number; maxLat: number; minLng: number; maxLng: number }): string {
+export function buildOverpassQuery(bbox: { minLat: number; maxLat: number; minLng: number; maxLng: number }): string {
   const { minLat, minLng, maxLat, maxLng } = bbox;
   
   return `
@@ -82,21 +82,21 @@ const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
 /**
  * Generate cache key for bounding box
  */
-function getCacheKey(bbox: { minLat: number; maxLat: number; minLng: number; maxLng: number }): string {
+export function getCacheKey(bbox: { minLat: number; maxLat: number; minLng: number; maxLng: number }): string {
   return `${bbox.minLat.toFixed(3)}_${bbox.minLng.toFixed(3)}_${bbox.maxLat.toFixed(3)}_${bbox.maxLng.toFixed(3)}`;
 }
 
 /**
  * Check if cached data is still valid
  */
-function isCacheValid(network: TrailNetwork): boolean {
+export function isCacheValid(network: TrailNetwork): boolean {
   return Date.now() - network.cacheTime < CACHE_DURATION;
 }
 
 /**
  * Parse OSM difficulty tags to standardized difficulty levels
  */
-function parseTrailDifficulty(tags: Record<string, string>): 'easy' | 'moderate' | 'difficult' | 'expert' | undefined {
+export function parseTrailDifficulty(tags: Record<string, string>): 'easy' | 'moderate' | 'difficult' | 'expert' | undefined {
   const sacScale = tags.sac_scale;
   const trailVisibility = tags.trail_visibility;
   
@@ -268,7 +268,7 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
  * Build a spatial index for fast trail lookups
  * Divides the area into a grid and indexes trails by grid cells
  */
-function buildSpatialIndex(trails: TrailSegment[], bbox: { minLat: number; maxLat: number; minLng: number; maxLng: number }): Map<string, TrailSegment[]> {
+export function buildSpatialIndex(trails: TrailSegment[], bbox: { minLat: number; maxLat: number; minLng: number; maxLng: number }): Map<string, TrailSegment[]> {
   const spatialIndex = new Map<string, TrailSegment[]>();
   const gridSize = 0.01; // ~1km grid cells
   
@@ -324,7 +324,7 @@ const distanceCache = new Map<string, number>();
 /**
  * Cached distance calculation
  */
-function cachedCalculateDistance(coord1: Coordinate, coord2: Coordinate): number {
+export function cachedCalculateDistance(coord1: Coordinate, coord2: Coordinate): number {
   const key = `${coord1.lat.toFixed(4)}_${coord1.lng.toFixed(4)}_${coord2.lat.toFixed(4)}_${coord2.lng.toFixed(4)}`;
   
   if (distanceCache.has(key)) {
@@ -390,7 +390,7 @@ export function findNearestTrailPoint(
  * @param coord2 Second coordinate
  * @returns Distance in kilometers
  */
-function calculateDistance(coord1: Coordinate, coord2: Coordinate): number {
+export function calculateDistance(coord1: Coordinate, coord2: Coordinate): number {
   const R = 6371; // Earth's radius in km
   const dLat = (coord2.lat - coord1.lat) * Math.PI / 180;
   const dLng = (coord2.lng - coord1.lng) * Math.PI / 180;

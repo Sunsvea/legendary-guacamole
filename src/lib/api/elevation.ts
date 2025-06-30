@@ -45,12 +45,17 @@ export async function getElevationForRoute(
   const distance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
   const steps = Math.ceil(distance / resolution);
   
-  for (let i = 0; i <= steps; i++) {
-    const ratio = i / steps;
-    points.push({
-      lat: start.lat + latDiff * ratio,
-      lng: start.lng + lngDiff * ratio,
-    });
+  // Handle case where start and end are the same
+  if (steps === 0) {
+    points.push({ lat: start.lat, lng: start.lng });
+  } else {
+    for (let i = 0; i <= steps; i++) {
+      const ratio = i / steps;
+      points.push({
+        lat: start.lat + latDiff * ratio,
+        lng: start.lng + lngDiff * ratio,
+      });
+    }
   }
 
   try {

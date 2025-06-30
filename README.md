@@ -2,6 +2,9 @@
 
 A Next.js application that uses A* pathfinding to plan optimal mountain hiking routes. The app analyzes elevation data, terrain complexity, and trail networks to generate safe, efficient routes with interactive visualization.
 
+## 🌐 Live Demo
+Experience the app at: **[https://legendary-guacamole-dusky.vercel.app](https://legendary-guacamole-dusky.vercel.app)**
+
 ## Features
 
 ### Pathfinding

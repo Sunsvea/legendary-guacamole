@@ -11,9 +11,10 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 interface RouteMapProps {
   points: RoutePoint[];
   className?: string;
+  onMapReady?: () => void;
 }
 
-export function RouteMap({ points, className = '' }: RouteMapProps) {
+export function RouteMap({ points, className = '', onMapReady }: RouteMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -36,6 +37,15 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
 
   useEffect(() => {
     if (!mapContainer.current || map.current || !points || points.length === 0) return;
+
+    // Check rate limiting for map operations
+    import('@/lib/utils/rate-limiter').then(({ mapRateLimiter }) => {
+      if (!mapRateLimiter.isAllowed('map-load')) {
+        const timeUntilReset = mapRateLimiter.getTimeUntilReset('map-load');
+        setMapError(`Too many map loads. Please wait ${Math.ceil(timeUntilReset / 1000)} seconds before refreshing.`);
+        return;
+      }
+    });
 
     // Set Mapbox access token from environment (must be public token for client-side)
     const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -182,6 +192,11 @@ export function RouteMap({ points, className = '' }: RouteMapProps) {
         .addTo(map.current);
 
         setMapLoaded(true);
+        
+        // Call onMapReady callback to trigger scroll
+        if (onMapReady) {
+          onMapReady();
+        }
       });
 
       // Add navigation controls

@@ -82,12 +82,13 @@ export function ElevationChart({ points, className = '' }: ElevationChartProps) 
         </div>
       </div>
       
-      <div className="overflow-x-auto">
+      <div className="w-full">
         <svg 
-          width={chartWidth} 
+          width="100%" 
           height={chartHeight} 
-          className="min-w-full"
-          style={{ minWidth: `${chartWidth}px` }}
+          viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+          preserveAspectRatio="none"
+          className="w-full"
         >
           {gridLines}
           
