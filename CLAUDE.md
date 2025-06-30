@@ -28,24 +28,33 @@ cd alpine-route-optimizer
 
 ### Core Algorithm
 The application implements A* pathfinding algorithm for route optimization:
-- **Pathfinding**: Located in `src/lib/algorithms/pathfinding.ts`
+- **Main Pathfinding**: `src/lib/algorithms/pathfinding.ts` - Coordinates pathfinding workflow
+- **Modular Architecture**: Broken into focused components for maintainability:
+  - `pathfinding/utilities.ts` - Core A* utilities, movement cost, and heuristics
+  - `pathfinding/trail-detection.ts` - Trail detection, chaining, and linear route optimization
+  - `pathfinding/terrain/terrain-analyzer.ts` - Comprehensive terrain analysis with Tobler's function
+  - `pathfinding/data-structures/priority-queue.ts` - Optimized priority queue implementation
 - Uses priority queue with heuristic cost calculation
-- Factors in elevation gain, distance, and terrain steepness
-- Falls back to direct route with elevation data if pathfinding fails
-- **Development Roadmap**: See `DEVELOPMENT_TODO_LIST.md` for planned terrain-aware pathfinding improvements
+- Factors in elevation gain, distance, terrain steepness, and trail availability
+- Multiple fallback strategies for robust route generation
+- **Development Roadmap**: See `DEVELOPMENT_TODO_LIST.md` for planned enhancements
 
 ### Key Components
-- **Route Input**: `src/components/forms/route-input-form.tsx` - User input for start/end coordinates
-- **Visualization**: `src/components/ui/route-map.tsx` and `src/components/ui/elevation-chart.tsx`
-- **Semantic UI**: `src/components/ui/semantic/` - Reusable semantic components like `<FindOptimalRouteButton>`
-- **Constants**: `src/constants/` - Centralized text, styles, and color constants for consistency
+- **Route Input**: `src/components/forms/route-input-form.tsx` - User input with validation and example routes
+- **Interactive Map**: `src/components/ui/route-map.tsx` - Mapbox GL JS integration with elevation-colored routes
+- **Elevation Chart**: `src/components/ui/elevation-chart.tsx` - Dynamic profiling with gradient visualization
+- **Pathfinding Controls**: `src/components/ui/pathfinding-controls.tsx` - Comprehensive parameter tuning
+- **Semantic UI**: `src/components/ui/semantic/` - Business logic components like `<FindOptimalRouteButton>`
+- **Constants**: `src/constants/` - Centralized text, styles, and color constants for i18n
+- **Types**: `src/types/` - Comprehensive TypeScript interfaces for pathfinding and route data
 - **Data Flow**: Main page (`src/app/page.tsx`) coordinates between input, pathfinding, and visualization
 
 ### External APIs
-- **Elevation Data**: Uses Open-Meteo Elevation API (`src/lib/api/elevation.ts`)
+- **Elevation Data**: Open-Meteo Elevation API (`src/lib/api/elevation.ts`) with configurable resolution
+- **Trail Data**: OpenStreetMap Overpass API (`src/lib/api/trails.ts`) for hiking paths and trails
 - **Mapbox Integration**: Interactive terrain maps with Mapbox GL JS (`src/components/ui/route-map.tsx`)
-- Fetches elevation points along route with configurable resolution
-- Handles API failures gracefully with fallback elevation data
+- **Spatial Indexing**: Efficient trail lookup with spatial optimization for performance
+- Handles API failures gracefully with multiple fallback strategies
 - Full Mapbox API access for advanced terrain analysis (see `DEVELOPMENT_TODO_LIST.md`)
 
 ### Type System
@@ -53,7 +62,10 @@ Well-defined TypeScript interfaces in `src/types/`:
 - `Coordinate` - Basic lat/lng with optional elevation
 - `RoutePoint` - Extended coordinate with elevation and risk factors  
 - `Route` - Complete route with metadata (distance, difficulty, time estimates)
-- `PathfindingNode` - A* algorithm node structure
+- `PathfindingNode` - A* algorithm node structure with parent tracking
+- `PathfindingOptions` - Comprehensive configuration for algorithm tuning
+- `TrailSegment` & `TrailNetwork` - Trail data structures with spatial indexing
+- `TerrainType` - Enum for different terrain classifications
 
 ### Utility Functions
 Located in `src/lib/utils/index.ts`:
@@ -73,12 +85,20 @@ Located in `src/lib/utils/index.ts`:
 
 ## Development Planning
 
-### Current Priorities
-See `DEVELOPMENT_TODO_LIST.md` for the comprehensive roadmap to implement terrain-aware pathfinding:
-- **Phase 1**: Enhanced terrain analysis with realistic hiking cost models
-- **Phase 2**: Trail integration using OpenStreetMap and Mapbox data
-- **Phase 3**: Advanced pathfinding with multi-objective optimization
-- **Phase 4**: Route optimization and user preferences
+### Current Status & Priorities
+**✅ Recently Completed:**
+- Modular pathfinding architecture with clean separation of concerns
+- Comprehensive trail integration with OpenStreetMap data
+- Terrain analysis module with Tobler's hiking function
+- Interactive Mapbox GL JS mapping with elevation visualization
+- Advanced pathfinding controls with real-time parameter tuning
+
+**🚧 Current Focus:**
+See `DEVELOPMENT_TODO_LIST.md` for the comprehensive enhancement roadmap:
+- **Phase 1**: Enhanced terrain analysis with higher resolution data
+- **Phase 2**: Advanced trail network optimization and chaining
+- **Phase 3**: Multi-objective optimization (distance, time, safety, scenic value)
+- **Phase 4**: Weather integration and seasonal condition awareness
 
 ### Commit Standards you MUST follow:
 - Each commit should cover an atomic unit of work and be readable. Examples:
