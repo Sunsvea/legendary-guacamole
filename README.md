@@ -5,7 +5,7 @@ A Next.js application that uses A* pathfinding to plan optimal mountain hiking r
 ## Features
 
 ### Pathfinding
-- **A* Algorithm Implementation**: Pathfinding with heuristic cost calculation
+- **A\* Algorithm Implementation**: Pathfinding with heuristic cost calculation
 - **Terrain-Aware Routing**: Factors in elevation gain, slope steepness, and terrain complexity
 - **Trail Integration**: Uses OpenStreetMap trail data for route planning
 - **Multi-Modal Options**: Support for trails-only, roads-only, or mixed routing
