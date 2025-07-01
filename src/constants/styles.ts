@@ -73,7 +73,16 @@ export const STYLES = {
   TIP_TEXT: 'text-sm text-blue-800',
 
   // Icon sizes
+  ICON_XS: 'h-3 w-3',
   ICON_SM: 'h-4 w-4',
   ICON_MD: 'h-5 w-5',
   ICON_LG: 'h-8 w-8',
+  ICON_2XL: 'h-12 w-12',
+
+  // Form inputs
+  INPUT: 'w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+  LABEL: 'block text-sm font-medium text-gray-700 mb-1',
+
+  // Layout spacing additions
+  SPACE_Y_6: 'space-y-6',
 } as const;

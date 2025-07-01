@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Mountain } from 'lucide-react';
 import { UI_TEXT } from '@/constants/ui-text';
 import { STYLES } from '@/constants/styles';
@@ -28,9 +29,12 @@ export function Header() {
             
             <div className="flex items-center space-x-6">
               <nav className={STYLES.HIDDEN_MD_FLEX}>
-                <a href="#routes" className={`${COLORS.TEXT.SECONDARY} hover:${COLORS.TEXT.BLUE} transition-colors`}>
-                  {UI_TEXT.NAV_ROUTES}
-                </a>
+                <Link href="/" className={`${COLORS.TEXT.SECONDARY} hover:${COLORS.TEXT.BLUE} transition-colors`}>
+                  Route Planner
+                </Link>
+                <Link href="/dashboard" className={`${COLORS.TEXT.SECONDARY} hover:${COLORS.TEXT.BLUE} transition-colors`}>
+                  Dashboard
+                </Link>
                 <a href="#weather" className={`${COLORS.TEXT.SECONDARY} hover:${COLORS.TEXT.BLUE} transition-colors`}>
                   {UI_TEXT.NAV_WEATHER}
                 </a>

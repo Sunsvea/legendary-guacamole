@@ -88,4 +88,8 @@ export const UI_TEXT = {
   ROUTE_TAGS_HELP: 'Add tags separated by commas (e.g., summit, glacier, technical)',
   CANCEL: 'Cancel',
   SAVE: 'Save',
+
+  // Dashboard
+  DASHBOARD_TITLE: 'Route Dashboard',
+  DASHBOARD_SUBTITLE: 'Manage your saved alpine routes',
 } as const;
