@@ -23,7 +23,7 @@ export interface SavedRoute {
 /**
  * Database route type (matches Supabase table structure)
  */
-export interface DatabaseRoute extends SavedRoute {}
+export type DatabaseRoute = SavedRoute;
 
 /**
  * User preferences stored in database
@@ -149,7 +149,7 @@ export function calculateRouteMetadata(route: Route): RouteMetadata {
   const difficultyScore = difficultyMap[route.difficulty];
   
   // Estimate regions covered (simplified)
-  const regions = estimateRegionsCovered(route.start, route.end);
+  const regions = estimateRegionsCovered(route.start);
   
   return {
     total_distance: route.distance,
@@ -164,10 +164,9 @@ export function calculateRouteMetadata(route: Route): RouteMetadata {
 /**
  * Estimate geographic regions covered by a route
  * @param start Starting coordinate
- * @param end Ending coordinate
  * @returns Array of region names
  */
-function estimateRegionsCovered(start: Coordinate, end: Coordinate): string[] {
+function estimateRegionsCovered(start: Coordinate): string[] {
   // Simplified region detection based on coordinates
   // In a real implementation, this would use proper geographic data
   const regions: string[] = [];

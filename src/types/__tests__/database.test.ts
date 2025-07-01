@@ -4,7 +4,6 @@
 
 import {
   SavedRoute,
-  UserPreferences,
   RouteMetadata,
   DatabaseRoute,
   toDatabaseRoute,

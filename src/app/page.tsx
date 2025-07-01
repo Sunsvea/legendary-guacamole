@@ -21,7 +21,7 @@ export default function Home() {
   const [pathfindingOptions, setPathfindingOptions] = useState<PathfindingOptions>(DEFAULT_PATHFINDING_OPTIONS);
   const mapRef = useRef<HTMLDivElement>(null);
 
-  const handleRouteSubmitInternal = async (start: Coordinate, end: Coordinate) => {
+  const handleRouteSubmitInternal = useCallback(async (start: Coordinate, end: Coordinate) => {
     // Check rate limiting
     if (!pathfindingRateLimiter.isAllowed('pathfinding')) {
       const timeUntilReset = pathfindingRateLimiter.getTimeUntilReset('pathfinding');
@@ -82,7 +82,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pathfindingOptions]);
 
   // Create a debounced version for route submission using useRef
   const debouncedSubmitRef = useRef<((start: Coordinate, end: Coordinate) => void) | null>(null);
@@ -94,7 +94,7 @@ export default function Home() {
       }
       debouncedSubmitRef.current(start, end);
     },
-    [pathfindingOptions, handleRouteSubmitInternal]
+    [handleRouteSubmitInternal]
   );
 
   const handleMapReady = useCallback(() => {

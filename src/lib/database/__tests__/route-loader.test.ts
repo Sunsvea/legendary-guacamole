@@ -16,11 +16,9 @@ import {
   loadRoutesByTags,
   toLoadedRoute,
   extractRouteForPathfinding,
-  extractPathfindingOptions,
-  LoadedRoute,
-  RouteLoadResult
+  extractPathfindingOptions
 } from '../route-loader';
-import { DatabaseRoute, toDatabaseRoute } from '../../../types/database';
+import { toDatabaseRoute } from '../../../types/database';
 import { Route } from '../../../types/route';
 import { DEFAULT_PATHFINDING_OPTIONS } from '../../../types/pathfinding';
 import { getUserRoutes, getPublicRoutes, searchRoutes } from '../routes';
@@ -101,7 +99,7 @@ describe('Route Loader', () => {
         error: null
       });
 
-      const result = await loadUserRoutes(userId, 10, 25);
+      await loadUserRoutes(userId, 10, 25);
 
       expect(mockGetUserRoutes).toHaveBeenCalledWith(userId, 10, 25);
     });
@@ -161,7 +159,7 @@ describe('Route Loader', () => {
         error: null
       });
 
-      const result = await loadPublicRoutes(5, 15);
+      await loadPublicRoutes(5, 15);
 
       expect(mockGetPublicRoutes).toHaveBeenCalledWith(5, 15);
     });
@@ -210,7 +208,7 @@ describe('Route Loader', () => {
         error: null
       });
 
-      const result = await searchAndLoadRoutes('hiking');
+      await searchAndLoadRoutes('hiking');
 
       expect(mockSearchRoutes).toHaveBeenCalledWith('hiking', undefined, true, 0, 20);
     });

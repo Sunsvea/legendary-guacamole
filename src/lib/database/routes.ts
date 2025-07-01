@@ -13,7 +13,7 @@ import { PathfindingOptions } from '../../types/pathfinding';
 export interface RouteOperationResult {
   success: boolean;
   data: DatabaseRoute | null;
-  error: any;
+  error: { message: string; code?: string } | null;
 }
 
 /**
@@ -22,7 +22,7 @@ export interface RouteOperationResult {
 export interface RoutesResult {
   success: boolean;
   data: DatabaseRoute[] | null;
-  error: any;
+  error: { message: string; code?: string } | null;
 }
 
 /**
@@ -30,7 +30,7 @@ export interface RoutesResult {
  */
 export interface DeleteResult {
   success: boolean;
-  error: any;
+  error: { message: string; code?: string } | null;
 }
 
 /**
@@ -211,9 +211,9 @@ export async function updateRoute(
 
     const { data, error } = await supabase
       .from('routes')
+      .update(updateData)
       .eq('id', routeId)
-      .eq('user_id', userId) // Ensure user owns the route
-      .update(updateData);
+      .eq('user_id', userId); // Ensure user owns the route
 
     if (error) {
       return {
@@ -255,9 +255,9 @@ export async function deleteRoute(
 
     const { error } = await supabase
       .from('routes')
+      .delete()
       .eq('id', routeId)
-      .eq('user_id', userId) // Ensure user owns the route
-      .delete();
+      .eq('user_id', userId); // Ensure user owns the route
 
     if (error) {
       return {

@@ -21,9 +21,7 @@ import {
   signUp, 
   signIn, 
   signOut, 
-  getCurrentUser, 
-  AuthUser,
-  AuthError 
+  getCurrentUser
 } from '../auth';
 
 describe('Authentication Functions', () => {

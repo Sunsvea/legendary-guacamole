@@ -2,7 +2,7 @@
  * Route loading and management operations
  */
 
-import { getUserRoutes, getPublicRoutes, searchRoutes, RoutesResult } from './routes';
+import { getUserRoutes, getPublicRoutes, searchRoutes } from './routes';
 import { fromDatabaseRoute, DatabaseRoute } from '../../types/database';
 import { Route } from '../../types/route';
 import { PathfindingOptions } from '../../types/pathfinding';
@@ -26,7 +26,7 @@ export interface LoadedRoute {
 export interface RouteLoadResult {
   success: boolean;
   data: LoadedRoute[] | null;
-  error: any;
+  error: { message: string; code?: string } | null;
 }
 
 /**

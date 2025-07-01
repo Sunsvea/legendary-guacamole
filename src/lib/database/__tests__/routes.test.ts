@@ -24,12 +24,10 @@ import {
   getUserRoutes, 
   getPublicRoutes,
   updateRoute,
-  deleteRoute,
-  RouteOperationResult,
-  RoutesResult
+  deleteRoute
 } from '../routes';
 import { Route } from '../../../types/route';
-import { DatabaseRoute, toDatabaseRoute } from '../../../types/database';
+import { toDatabaseRoute } from '../../../types/database';
 import { DEFAULT_PATHFINDING_OPTIONS } from '../../../types/pathfinding';
 
 describe('Route Database Operations', () => {
@@ -207,7 +205,7 @@ describe('Route Database Operations', () => {
         select: mockSelect
       });
 
-      const result = await getUserRoutes(userId, 10, 25);
+      await getUserRoutes(userId, 10, 25);
 
       expect(mockOrderChain.range).toHaveBeenCalledWith(10, 34); // offset 10, limit 25
     });
@@ -275,21 +273,21 @@ describe('Route Database Operations', () => {
       const updatedRoute = { ...mockRoute, name: 'Updated Route Name' };
       const mockDbRoute = toDatabaseRoute(updatedRoute, userId, DEFAULT_PATHFINDING_OPTIONS);
 
-      const mockUpdate = jest.fn().mockResolvedValue({
+      const mockEq2 = jest.fn().mockResolvedValue({
         data: [mockDbRoute],
         error: null
-      });
-
-      const mockEq2 = jest.fn().mockReturnValue({
-        update: mockUpdate
       });
 
       const mockEq1 = jest.fn().mockReturnValue({
         eq: mockEq2
       });
 
-      mockSupabaseClient.from.mockReturnValue({
+      const mockUpdate = jest.fn().mockReturnValue({
         eq: mockEq1
+      });
+
+      mockSupabaseClient.from.mockReturnValue({
+        update: mockUpdate
       });
 
       const result = await updateRoute(mockRoute.id, userId, updatedRoute, DEFAULT_PATHFINDING_OPTIONS);
@@ -297,8 +295,6 @@ describe('Route Database Operations', () => {
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockDbRoute);
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('routes');
-      expect(mockEq1).toHaveBeenCalledWith('id', mockRoute.id);
-      expect(mockEq2).toHaveBeenCalledWith('user_id', userId);
       expect(mockUpdate).toHaveBeenCalledWith(
         expect.objectContaining({
           route_data: updatedRoute,
@@ -306,26 +302,28 @@ describe('Route Database Operations', () => {
           updated_at: expect.any(String)
         })
       );
+      expect(mockEq1).toHaveBeenCalledWith('id', mockRoute.id);
+      expect(mockEq2).toHaveBeenCalledWith('user_id', userId);
     });
   });
 
   describe('deleteRoute', () => {
     it('should successfully delete a route', async () => {
-      const mockDelete = jest.fn().mockResolvedValue({
+      const mockEq2 = jest.fn().mockResolvedValue({
         data: null,
         error: null
-      });
-
-      const mockEq2 = jest.fn().mockReturnValue({
-        delete: mockDelete
       });
 
       const mockEq1 = jest.fn().mockReturnValue({
         eq: mockEq2
       });
 
-      mockSupabaseClient.from.mockReturnValue({
+      const mockDelete = jest.fn().mockReturnValue({
         eq: mockEq1
+      });
+
+      mockSupabaseClient.from.mockReturnValue({
+        delete: mockDelete
       });
 
       const result = await deleteRoute(mockRoute.id, userId);
@@ -333,9 +331,9 @@ describe('Route Database Operations', () => {
       expect(result.success).toBe(true);
       expect(result.error).toBeNull();
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('routes');
+      expect(mockDelete).toHaveBeenCalled();
       expect(mockEq1).toHaveBeenCalledWith('id', mockRoute.id);
       expect(mockEq2).toHaveBeenCalledWith('user_id', userId);
-      expect(mockDelete).toHaveBeenCalled();
     });
 
     it('should return error when delete fails', async () => {
@@ -344,21 +342,21 @@ describe('Route Database Operations', () => {
         code: 'NOT_FOUND'
       };
 
-      const mockDelete = jest.fn().mockResolvedValue({
+      const mockEq2 = jest.fn().mockResolvedValue({
         data: null,
         error: mockError
-      });
-
-      const mockEq2 = jest.fn().mockReturnValue({
-        delete: mockDelete
       });
 
       const mockEq1 = jest.fn().mockReturnValue({
         eq: mockEq2
       });
 
-      mockSupabaseClient.from.mockReturnValue({
+      const mockDelete = jest.fn().mockReturnValue({
         eq: mockEq1
+      });
+
+      mockSupabaseClient.from.mockReturnValue({
+        delete: mockDelete
       });
 
       const result = await deleteRoute(mockRoute.id, userId);
