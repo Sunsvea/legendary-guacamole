@@ -174,7 +174,7 @@ export function SaveRouteButton({
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
                 {UI_TEXT.SAVE_ROUTE}
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-900">
                 Save this route to your personal collection
               </p>
             </div>
@@ -190,7 +190,7 @@ export function SaveRouteButton({
 
               {/* Route Name */}
               <div>
-                <label htmlFor="routeName" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="routeName" className="block text-sm font-medium text-gray-900 mb-1">
                   {UI_TEXT.ROUTE_NAME_LABEL}
                 </label>
                 <input
@@ -215,14 +215,14 @@ export function SaveRouteButton({
                     className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     disabled={dialogState.isSaving}
                   />
-                  <span className="text-sm font-medium text-gray-700">{UI_TEXT.MAKE_PUBLIC}</span>
+                  <span className="text-sm font-medium text-gray-900">{UI_TEXT.MAKE_PUBLIC}</span>
                 </label>
-                <p className="mt-1 text-xs text-gray-500">{UI_TEXT.ROUTE_PRIVACY_HELP}</p>
+                <p className="mt-1 text-xs text-gray-700">{UI_TEXT.ROUTE_PRIVACY_HELP}</p>
               </div>
 
               {/* Tags */}
               <div>
-                <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="tags" className="block text-sm font-medium text-gray-900 mb-1">
                   {UI_TEXT.ROUTE_TAGS}
                 </label>
                 <input
@@ -234,7 +234,7 @@ export function SaveRouteButton({
                   placeholder="summit, glacier, technical"
                   disabled={dialogState.isSaving}
                 />
-                <p className="mt-1 text-xs text-gray-500">{UI_TEXT.ROUTE_TAGS_HELP}</p>
+                <p className="mt-1 text-xs text-gray-700">{UI_TEXT.ROUTE_TAGS_HELP}</p>
               </div>
             </div>
 

@@ -83,7 +83,7 @@ export function UserMenu({ onOpenAuthModal }: UserMenuProps) {
       {/* User avatar button */}
       <button
         onClick={() => setIsMenuOpen(!isMenuOpen)}
-        className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 transition-colors"
+        className="flex items-center space-x-2 text-gray-900 hover:text-blue-600 transition-colors"
         aria-expanded={isMenuOpen}
         aria-haspopup="true"
       >
@@ -109,7 +109,7 @@ export function UserMenu({ onOpenAuthModal }: UserMenuProps) {
           {/* User info */}
           <div className="px-4 py-3 border-b border-gray-200">
             <p className="text-sm font-medium text-gray-900">Signed in as</p>
-            <p className="text-sm text-gray-600 truncate">{user.email}</p>
+            <p className="text-sm text-gray-800 truncate">{user.email}</p>
           </div>
 
           {/* Menu items */}
@@ -120,7 +120,7 @@ export function UserMenu({ onOpenAuthModal }: UserMenuProps) {
                 // TODO: Navigate to dashboard
                 console.log('Navigate to dashboard');
               }}
-              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              className="block w-full text-left px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 transition-colors"
             >
               <div className="flex items-center">
                 <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,7 +136,7 @@ export function UserMenu({ onOpenAuthModal }: UserMenuProps) {
                 // TODO: Navigate to settings
                 console.log('Navigate to settings');
               }}
-              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              className="block w-full text-left px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 transition-colors"
             >
               <div className="flex items-center">
                 <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,7 +153,7 @@ export function UserMenu({ onOpenAuthModal }: UserMenuProps) {
                 // TODO: Navigate to public routes
                 console.log('Navigate to public routes');
               }}
-              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              className="block w-full text-left px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 transition-colors"
             >
               <div className="flex items-center">
                 <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,7 +169,7 @@ export function UserMenu({ onOpenAuthModal }: UserMenuProps) {
           <div className="border-t border-gray-200 py-1">
             <button
               onClick={handleSignOut}
-              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              className="block w-full text-left px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 transition-colors"
             >
               <div className="flex items-center">
                 <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

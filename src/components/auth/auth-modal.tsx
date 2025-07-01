@@ -175,7 +175,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             {mode === 'login' ? 'Sign In' : 'Create Account'}
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-900">
             {mode === 'login' 
               ? 'Welcome back! Sign in to access your saved routes.'
               : 'Join the community and start saving your favorite alpine routes.'
@@ -194,7 +194,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
 
           {/* Email field */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-900 mb-1">
               Email Address
             </label>
             <input
@@ -215,7 +215,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
 
           {/* Password field */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-900 mb-1">
               Password
             </label>
             <input
@@ -237,7 +237,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
           {/* Confirm password field (signup only) */}
           {mode === 'signup' && (
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-900 mb-1">
                 Confirm Password
               </label>
               <input
@@ -281,7 +281,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
 
         {/* Mode switch */}
         <div className="mt-6 text-center">
-          <p className="text-gray-600">
+          <p className="text-gray-900">
             {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
             <button
               onClick={switchMode}
