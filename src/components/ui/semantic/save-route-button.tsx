@@ -198,7 +198,7 @@ export function SaveRouteButton({
                   id="routeName"
                   value={dialogState.routeName}
                   onChange={(e) => updateDialogField('routeName', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
                   placeholder="Enter a name for this route"
                   disabled={dialogState.isSaving}
                   required
@@ -230,7 +230,7 @@ export function SaveRouteButton({
                   id="tags"
                   value={dialogState.tags}
                   onChange={(e) => updateDialogField('tags', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
                   placeholder="summit, glacier, technical"
                   disabled={dialogState.isSaving}
                 />
