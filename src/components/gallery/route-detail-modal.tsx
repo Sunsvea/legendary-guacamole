@@ -129,7 +129,7 @@ export function RouteDetailModal({
         {/* Tags */}
         {route.tags && route.tags.length > 0 && (
           <div className="p-6 border-b">
-            <h3 className="text-lg font-semibold mb-3">Tags</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Tags</h3>
             <div className="flex flex-wrap gap-2">
               {route.tags.map((tag, index) => (
                 <span
@@ -144,17 +144,17 @@ export function RouteDetailModal({
         )}
 
         {/* Map and Elevation Chart */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-8">
           <div>
-            <h3 className="text-lg font-semibold mb-3">Route Map</h3>
-            <div className="h-64 rounded-lg overflow-hidden border">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Route Map</h3>
+            <div className="h-96 rounded-lg overflow-hidden border">
               <RouteMap points={route.route_data.points} />
             </div>
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold mb-3">Elevation Profile</h3>
-            <div className="h-48 rounded-lg overflow-hidden border">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Elevation Profile</h3>
+            <div className="h-80 rounded-lg overflow-hidden border">
               <ElevationChart points={route.route_data.points} />
             </div>
           </div>

@@ -16,6 +16,7 @@ import {
 import { DatabaseRoute } from '@/types/database';
 import { deleteRoute, updateRoute } from '@/lib/database/routes';
 import { useAuth } from '@/contexts/auth-context';
+import { RouteMap } from '@/components/ui/route-map';
 import { STYLES } from '@/constants/styles';
 
 interface RouteCardProps {
@@ -162,6 +163,15 @@ export function RouteCard({ route, onDelete, onUpdate }: RouteCardProps) {
           )}
         </div>
       </div>
+
+      {/* Route Preview Map */}
+      {route.route_data.points && route.route_data.points.length > 0 && (
+        <div className="mb-4">
+          <div className="h-32 rounded-lg overflow-hidden border border-gray-200">
+            <RouteMap points={route.route_data.points} />
+          </div>
+        </div>
+      )}
 
       {/* Route Metrics */}
       <div className="grid grid-cols-2 gap-3 mb-4">
