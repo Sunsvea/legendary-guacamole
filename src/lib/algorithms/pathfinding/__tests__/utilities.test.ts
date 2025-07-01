@@ -1,5 +1,5 @@
 /**
- * Comprehensive unit tests for pathfinding utilities
+ * Unit tests for pathfinding utilities
  * Tests core A* algorithm functions including heuristics, movement costs, 
  * neighbor generation, path reconstruction, and trail optimization
  */

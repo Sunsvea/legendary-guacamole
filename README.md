@@ -107,7 +107,7 @@ For production deployment, see the comprehensive [DEPLOYMENT.md](./DEPLOYMENT.md
 - **Mapping**: Mapbox GL JS for interactive terrain visualization
 - **Backend**: Supabase for authentication, database, and real-time features
 - **Database**: PostgreSQL with Row Level Security (RLS) policies
-- **Testing**: Jest with React Testing Library and comprehensive coverage
+- **Testing**: Jest with React Testing Library w/ coverage
 
 ### Key Components
 - **Authentication System**: User registration, login, and session management
@@ -188,7 +188,7 @@ src/
 - **Trail data integration** with OpenStreetMap via Overpass API
 - **Modular architecture** with clean separation of concerns and semantic components
 - **Responsive UI design** with Tailwind CSS and professional styling
-- **Comprehensive test coverage** across all modules and components
+- **Test coverage** across all modules and components
 
 ### In Development
 - User dashboard for route management

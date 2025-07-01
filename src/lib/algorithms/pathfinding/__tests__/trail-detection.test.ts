@@ -1,5 +1,5 @@
 /**
- * Comprehensive unit tests for trail detection and linear route optimization
+ * Unit tests for trail detection and linear route optimization
  * Tests functions for obvious linear route detection, forced linear routes,
  * trail path finding, and helper utilities for trail analysis
  */

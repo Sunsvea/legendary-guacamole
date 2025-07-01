@@ -1,5 +1,5 @@
 /**
- * Comprehensive unit tests for PriorityQueue data structure
+ * Unit tests for PriorityQueue data structure
  * Tests enqueue, dequeue, isEmpty, and contains operations
  * for A* pathfinding algorithm implementation
  */
