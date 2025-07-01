@@ -32,6 +32,9 @@ export function Header() {
                 <Link href="/" className={`${COLORS.TEXT.SECONDARY} hover:${COLORS.TEXT.BLUE} transition-colors`}>
                   Route Planner
                 </Link>
+                <Link href="/gallery" className={`${COLORS.TEXT.SECONDARY} hover:${COLORS.TEXT.BLUE} transition-colors`}>
+                  Gallery
+                </Link>
                 <Link href="/dashboard" className={`${COLORS.TEXT.SECONDARY} hover:${COLORS.TEXT.BLUE} transition-colors`}>
                   Dashboard
                 </Link>
