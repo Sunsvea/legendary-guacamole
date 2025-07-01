@@ -21,6 +21,7 @@ interface SaveRouteButtonProps {
   pathfindingOptions: PathfindingOptions;
   onSaveSuccess?: (savedRoute: DatabaseRoute) => void;
   onAuthRequired?: () => void;
+  onSaveError?: (error: string) => void;
   variant?: 'primary' | 'secondary';
   className?: string;
 }
@@ -45,6 +46,7 @@ export function SaveRouteButton({
   pathfindingOptions,
   onSaveSuccess,
   onAuthRequired,
+  onSaveError,
   variant = 'primary',
   className
 }: SaveRouteButtonProps) {
@@ -117,18 +119,17 @@ export function SaveRouteButton({
       if (result.success && result.data) {
         onSaveSuccess?.(result.data);
         handleCloseDialog();
-        
-        // Show success feedback (could be enhanced with toast notification)
-        alert(UI_TEXT.SAVE_SUCCESS);
       } else {
         throw new Error(result.error?.message || UI_TEXT.SAVE_ERROR);
       }
     } catch (error) {
       console.error('Error saving route:', error);
+      const errorMessage = error instanceof Error ? error.message : UI_TEXT.SAVE_ERROR;
       setDialogState(prev => ({
         ...prev,
-        error: error instanceof Error ? error.message : UI_TEXT.SAVE_ERROR
+        error: errorMessage
       }));
+      onSaveError?.(errorMessage);
     } finally {
       setDialogState(prev => ({ ...prev, isSaving: false }));
     }

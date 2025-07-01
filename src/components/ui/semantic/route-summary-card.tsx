@@ -9,6 +9,7 @@ interface RouteSummaryCardProps {
   route: Route;
   pathfindingOptions?: PathfindingOptions;
   onSaveSuccess?: (savedRoute: DatabaseRoute) => void;
+  onSaveError?: (error: string) => void;
   onAuthRequired?: () => void;
   className?: string;
 }
@@ -35,6 +36,7 @@ export function RouteSummaryCard({
   route, 
   pathfindingOptions, 
   onSaveSuccess, 
+  onSaveError,
   onAuthRequired, 
   className 
 }: RouteSummaryCardProps) {
@@ -48,6 +50,7 @@ export function RouteSummaryCard({
             route={route}
             pathfindingOptions={pathfindingOptions}
             onSaveSuccess={onSaveSuccess}
+            onSaveError={onSaveError}
             onAuthRequired={onAuthRequired}
             variant="secondary"
           />

@@ -115,7 +115,16 @@ export default function Home() {
    */
   const handleSaveSuccess = useCallback((savedRoute: DatabaseRoute) => {
     console.log('Route saved successfully:', savedRoute);
-    // Could add success toast notification or update UI state here
+    // Show success feedback with native browser notification
+    alert(UI_TEXT.SAVE_SUCCESS);
+  }, []);
+
+  /**
+   * Handle route save error
+   */
+  const handleSaveError = useCallback((error: string) => {
+    console.error('Route save failed:', error);
+    // Error is already shown in the save dialog, no need for additional alert
   }, []);
 
   /**
@@ -180,6 +189,7 @@ export default function Home() {
                 route={currentRoute} 
                 pathfindingOptions={pathfindingOptions}
                 onSaveSuccess={handleSaveSuccess}
+                onSaveError={handleSaveError}
                 onAuthRequired={handleAuthRequired}
               />
               <div ref={mapRef}>
