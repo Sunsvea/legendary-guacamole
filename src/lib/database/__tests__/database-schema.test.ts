@@ -85,7 +85,7 @@ describe('Database Schema and RLS Integration', () => {
       );
     });
 
-    it('should enforce required fields', () => {
+    it('should enforce required fields', async () => {
       const requiredFields = [
         'id',
         'user_id', 
@@ -95,7 +95,7 @@ describe('Database Schema and RLS Integration', () => {
       ];
 
       // Verify our toDatabaseRoute function includes all required fields
-      const { toDatabaseRoute } = require('../../../types/database');
+      const { toDatabaseRoute } = await import('../../../types/database');
       const dbRoute = toDatabaseRoute(mockRoute, userId, DEFAULT_PATHFINDING_OPTIONS);
 
       requiredFields.forEach(field => {
@@ -104,8 +104,8 @@ describe('Database Schema and RLS Integration', () => {
       });
     });
 
-    it('should support optional fields with defaults', () => {
-      const { toDatabaseRoute } = require('../../../types/database');
+    it('should support optional fields with defaults', async () => {
+      const { toDatabaseRoute } = await import('../../../types/database');
       const dbRoute = toDatabaseRoute(mockRoute, userId, DEFAULT_PATHFINDING_OPTIONS);
 
       // Check optional fields have proper defaults
@@ -167,7 +167,7 @@ describe('Database Schema and RLS Integration', () => {
         select: mockSelect
       });
 
-      const { getPublicRoutes } = require('../routes');
+      const { getPublicRoutes } = await import('../routes');
       const result = await getPublicRoutes();
 
       expect(result.success).toBe(true);
@@ -181,8 +181,8 @@ describe('Database Schema and RLS Integration', () => {
   });
 
   describe('User Preferences Schema', () => {
-    it('should have proper default preferences structure', () => {
-      const { createUserPreferences, DEFAULT_USER_PREFERENCES } = require('../../../types/database');
+    it('should have proper default preferences structure', async () => {
+      const { createUserPreferences } = await import('../../../types/database');
       
       const userPrefs = createUserPreferences(userId);
 
@@ -201,8 +201,8 @@ describe('Database Schema and RLS Integration', () => {
       expect(userPrefs.updated_at).toBeDefined();
     });
 
-    it('should support preference customization', () => {
-      const { createUserPreferences } = require('../../../types/database');
+    it('should support preference customization', async () => {
+      const { createUserPreferences } = await import('../../../types/database');
       
       const customPrefs = createUserPreferences(userId, {
         difficulty_preference: 'hard',

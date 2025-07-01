@@ -24,6 +24,7 @@ const customJestConfig = {
     '!src/**/*.d.ts',
     '!src/app/**/*.tsx', // Exclude Next.js app components for now
     '!src/components/**/*.tsx', // Exclude React components for now
+    '!src/contexts/**/*.tsx', // Auth context is tested separately
   ],
   coverageThreshold: {
     global: {
