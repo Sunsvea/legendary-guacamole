@@ -1,9 +1,15 @@
 import { Route } from '@/types/route';
+import { PathfindingOptions } from '@/types/pathfinding';
+import { DatabaseRoute } from '@/types/database';
 import { UI_TEXT } from '@/constants/ui-text';
 import { STYLES } from '@/constants/styles';
+import { SaveRouteButton } from './save-route-button';
 
 interface RouteSummaryCardProps {
   route: Route;
+  pathfindingOptions?: PathfindingOptions;
+  onSaveSuccess?: (savedRoute: DatabaseRoute) => void;
+  onAuthRequired?: () => void;
   className?: string;
 }
 
@@ -25,10 +31,30 @@ function MetricItem({ value, unit, label, colorClass }: MetricItemProps) {
   );
 }
 
-export function RouteSummaryCard({ route, className }: RouteSummaryCardProps) {
+export function RouteSummaryCard({ 
+  route, 
+  pathfindingOptions, 
+  onSaveSuccess, 
+  onAuthRequired, 
+  className 
+}: RouteSummaryCardProps) {
   return (
     <div className={`${STYLES.CARD} ${className || ''}`}>
-      <h3 className={`${STYLES.HEADING_XL} mb-4`}>{UI_TEXT.ROUTE_SUMMARY}</h3>
+      {/* Header with Save Button */}
+      <div className={`${STYLES.FLEX_BETWEEN} mb-4`}>
+        <h3 className={STYLES.HEADING_XL}>{UI_TEXT.ROUTE_SUMMARY}</h3>
+        {pathfindingOptions && (
+          <SaveRouteButton 
+            route={route}
+            pathfindingOptions={pathfindingOptions}
+            onSaveSuccess={onSaveSuccess}
+            onAuthRequired={onAuthRequired}
+            variant="secondary"
+          />
+        )}
+      </div>
+      
+      {/* Metrics Grid */}
       <div className={STYLES.GRID_2_MD_4}>
         <MetricItem 
           value={route.distance}

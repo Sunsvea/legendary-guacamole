@@ -7,8 +7,10 @@ import { ElevationChart } from '@/components/ui/elevation-chart';
 import { RouteMap } from '@/components/ui/route-map';
 import { RouteSummaryCard } from '@/components/ui/semantic/route-summary-card';
 import { PathfindingControls } from '@/components/ui/pathfinding-controls';
+import { AuthModal } from '@/components/auth/auth-modal';
 import { Coordinate, Route } from '@/types/route';
 import { PathfindingOptions, DEFAULT_PATHFINDING_OPTIONS } from '@/types/pathfinding';
+import { DatabaseRoute } from '@/types/database';
 import { findOptimalRoute } from '@/lib/algorithms/pathfinding';
 import { calculateDistance, calculateElevationGain } from '@/lib/utils';
 import { debounce, pathfindingRateLimiter } from '@/lib/utils/rate-limiter';
@@ -19,6 +21,7 @@ export default function Home() {
   const [currentRoute, setCurrentRoute] = useState<Route | null>(null);
   const [loading, setLoading] = useState(false);
   const [pathfindingOptions, setPathfindingOptions] = useState<PathfindingOptions>(DEFAULT_PATHFINDING_OPTIONS);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
 
   const handleRouteSubmitInternal = useCallback(async (start: Coordinate, end: Coordinate) => {
@@ -107,6 +110,28 @@ export default function Home() {
     }
   }, []);
 
+  /**
+   * Handle successful route save
+   */
+  const handleSaveSuccess = useCallback((savedRoute: DatabaseRoute) => {
+    console.log('Route saved successfully:', savedRoute);
+    // Could add success toast notification or update UI state here
+  }, []);
+
+  /**
+   * Handle authentication required for saving
+   */
+  const handleAuthRequired = useCallback(() => {
+    setIsAuthModalOpen(true);
+  }, []);
+
+  /**
+   * Close authentication modal
+   */
+  const handleCloseAuthModal = useCallback(() => {
+    setIsAuthModalOpen(false);
+  }, []);
+
   return (
     <div className={`min-h-screen ${STYLES.BG_GRAY_50}`}>
       <Header />
@@ -151,7 +176,12 @@ export default function Home() {
 
           {currentRoute && (
             <>
-              <RouteSummaryCard route={currentRoute} />
+              <RouteSummaryCard 
+                route={currentRoute} 
+                pathfindingOptions={pathfindingOptions}
+                onSaveSuccess={handleSaveSuccess}
+                onAuthRequired={handleAuthRequired}
+              />
               <div ref={mapRef}>
                 <RouteMap points={currentRoute.points} onMapReady={handleMapReady} />
               </div>
@@ -160,6 +190,13 @@ export default function Home() {
           )}
         </div>
       </main>
+
+      {/* Auth Modal for Route Saving */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={handleCloseAuthModal}
+        defaultMode="login"
+      />
     </div>
   );
 }

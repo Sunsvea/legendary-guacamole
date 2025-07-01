@@ -73,4 +73,19 @@ export const UI_TEXT = {
   UNIT_M: 'm',
   UNIT_H: 'h',
   UNIT_DEGREES: '°',
+
+  // Route Saving
+  SAVE_ROUTE: 'Save Route',
+  SAVING_ROUTE: 'Saving...',
+  ROUTE_SAVED: 'Route Saved',
+  ROUTE_NAME_LABEL: 'Route Name',
+  MAKE_PUBLIC: 'Make Public',
+  ROUTE_TAGS: 'Tags (optional)',
+  SAVE_SUCCESS: 'Route saved successfully!',
+  SAVE_ERROR: 'Failed to save route. Please try again.',
+  SIGN_IN_TO_SAVE: 'Sign in to save routes',
+  ROUTE_PRIVACY_HELP: 'Public routes can be discovered by other users',
+  ROUTE_TAGS_HELP: 'Add tags separated by commas (e.g., summit, glacier, technical)',
+  CANCEL: 'Cancel',
+  SAVE: 'Save',
 } as const;
