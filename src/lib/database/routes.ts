@@ -55,7 +55,9 @@ export async function saveRoute(
 
     const { data, error } = await supabase
       .from('routes')
-      .insert(dbRoute);
+      .insert(dbRoute)
+      .select()
+      .single();
 
     if (error) {
       return {
@@ -67,7 +69,7 @@ export async function saveRoute(
 
     return {
       success: true,
-      data: Array.isArray(data) ? data[0] : data,
+      data: data,
       error: null
     };
   } catch (error) {
@@ -213,7 +215,9 @@ export async function updateRoute(
       .from('routes')
       .update(updateData)
       .eq('id', routeId)
-      .eq('user_id', userId); // Ensure user owns the route
+      .eq('user_id', userId) // Ensure user owns the route
+      .select()
+      .single();
 
     if (error) {
       return {
@@ -225,7 +229,7 @@ export async function updateRoute(
 
     return {
       success: true,
-      data: Array.isArray(data) ? data[0] : data,
+      data: data,
       error: null
     };
   } catch (error) {
