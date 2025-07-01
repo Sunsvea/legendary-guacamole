@@ -140,7 +140,7 @@ export default function GalleryPage() {
   /**
    * Handle successful route copy
    */
-  const handleCopySuccess = (copiedRoute: DatabaseRoute) => {
+  const handleCopySuccess = () => {
     setCopyMessage('Route copied successfully!');
     // Close modal after a short delay
     setTimeout(() => {

@@ -33,7 +33,6 @@ export function RouteDetailModal({
   if (!isOpen) return null;
 
   const isOwnRoute = user?.id === route.user_id;
-  const canCopy = user && !isOwnRoute;
 
   const handleCopy = async () => {
     if (!user || isOwnRoute) return;
@@ -49,7 +48,7 @@ export function RouteDetailModal({
       } else {
         setError(result.error?.message || 'Failed to copy route');
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
     } finally {
       setCopying(false);
@@ -102,7 +101,7 @@ export function RouteDetailModal({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">
-                {formatDistance(route.route_data.distance)}
+                {formatDistance(route.route_data.distance * 1000)}
               </div>
               <div className="text-sm text-gray-600">Distance</div>
             </div>
@@ -149,14 +148,14 @@ export function RouteDetailModal({
           <div>
             <h3 className="text-lg font-semibold mb-3">Route Map</h3>
             <div className="h-64 rounded-lg overflow-hidden border">
-              <RouteMap route={route.route_data} />
+              <RouteMap points={route.route_data.points} />
             </div>
           </div>
 
           <div>
             <h3 className="text-lg font-semibold mb-3">Elevation Profile</h3>
             <div className="h-48 rounded-lg overflow-hidden border">
-              <ElevationChart route={route.route_data} />
+              <ElevationChart points={route.route_data.points} />
             </div>
           </div>
         </div>

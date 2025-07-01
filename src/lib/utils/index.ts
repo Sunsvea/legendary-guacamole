@@ -33,11 +33,11 @@ export function calculateElevationGain(points: Array<{ elevation: number }>): nu
   return gain;
 }
 
-export function formatDistance(kilometers: number): string {
-  if (kilometers < 1) {
-    return `${Math.round(kilometers * 1000)} m`;
+export function formatDistance(meters: number): string {
+  if (meters < 1000) {
+    return `${Math.round(meters)}m`;
   }
-  return `${kilometers.toFixed(1)} km`;
+  return `${(meters / 1000).toFixed(1)}km`;
 }
 
 export function formatElevation(meters: number): string {

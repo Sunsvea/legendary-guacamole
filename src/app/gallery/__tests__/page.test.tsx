@@ -20,7 +20,6 @@ const mockUser = {
 
 const mockUseAuth = jest.fn();
 jest.mock('@/contexts/auth-context', () => ({
-  ...jest.requireActual('@/contexts/auth-context'),
   useAuth: () => mockUseAuth(),
 }));
 
@@ -64,6 +63,21 @@ jest.mock('@/components/gallery/gallery-filters', () => ({
       </button>
     </div>
   ),
+}));
+
+// Mock the RouteDetailModal to avoid mapbox issues
+jest.mock('@/components/gallery/route-detail-modal', () => ({
+  RouteDetailModal: ({ isOpen, route, onClose }: { 
+    isOpen: boolean; 
+    route: { name: string } | null; 
+    onClose: () => void;
+  }) => 
+    isOpen ? (
+      <div data-testid="route-detail-modal">
+        <div>Route: {route?.name}</div>
+        <button onClick={onClose}>Close</button>
+      </div>
+    ) : null,
 }));
 
 const mockRoutes = [

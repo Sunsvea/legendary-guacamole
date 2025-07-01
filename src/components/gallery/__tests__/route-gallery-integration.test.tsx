@@ -21,20 +21,20 @@ jest.mock('@/lib/database/routes', () => ({
 }));
 
 jest.mock('@/lib/database/route-copy', () => ({
-  copyRouteToUser: (...args: any[]) => mockCopyRouteToUser(...args),
+  copyRouteToUser: (...args: unknown[]) => mockCopyRouteToUser(...args),
 }));
 
 // Mock the RouteMap component to avoid mapbox-gl issues in tests
 jest.mock('@/components/ui/route-map', () => ({
-  RouteMap: ({ route }: { route: any }) => (
-    <div data-testid="route-map">Map for {route.name}</div>
+  RouteMap: () => (
+    <div data-testid="route-map">Mocked Route Map</div>
   ),
 }));
 
 // Mock the ElevationChart component
 jest.mock('@/components/ui/elevation-chart', () => ({
-  ElevationChart: ({ route }: { route: any }) => (
-    <div data-testid="elevation-chart">Elevation for {route.name}</div>
+  ElevationChart: () => (
+    <div data-testid="elevation-chart">Mocked Elevation Chart</div>
   ),
 }));
 

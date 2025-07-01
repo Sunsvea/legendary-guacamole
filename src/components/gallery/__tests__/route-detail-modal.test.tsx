@@ -16,20 +16,20 @@ jest.mock('@/contexts/auth-context', () => ({
 // Mock the route copy function
 const mockCopyRouteToUser = jest.fn();
 jest.mock('@/lib/database/route-copy', () => ({
-  copyRouteToUser: (...args: any[]) => mockCopyRouteToUser(...args),
+  copyRouteToUser: (...args: unknown[]) => mockCopyRouteToUser(...args),
 }));
 
 // Mock the map component
 jest.mock('@/components/ui/route-map', () => ({
-  RouteMap: ({ route }: { route: any }) => (
-    <div data-testid="route-map">Map for {route.name}</div>
+  RouteMap: () => (
+    <div data-testid="route-map">Mocked Route Map</div>
   ),
 }));
 
 // Mock the elevation chart
 jest.mock('@/components/ui/elevation-chart', () => ({
-  ElevationChart: ({ route }: { route: any }) => (
-    <div data-testid="elevation-chart">Elevation for {route.name}</div>
+  ElevationChart: () => (
+    <div data-testid="elevation-chart">Mocked Elevation Chart</div>
   ),
 }));
 
@@ -96,7 +96,7 @@ describe('RouteDetailModal', () => {
     );
 
     expect(screen.getByText('Spectacular Alpine Route')).toBeInTheDocument();
-    expect(screen.getByText('5.2 km')).toBeInTheDocument();
+    expect(screen.getByText('5.2km')).toBeInTheDocument();
     expect(screen.getByText('500 m')).toBeInTheDocument();
     expect(screen.getByText('Moderate')).toBeInTheDocument();
     expect(screen.getByText('2.0 hrs')).toBeInTheDocument();
