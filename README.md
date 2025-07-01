@@ -23,11 +23,13 @@ Experience the app at: **[https://legendary-guacamole-dusky.vercel.app](https://
 - **Responsive Design**: Works on desktop and mobile
 - **Fallback Support**: Static maps when interactive maps fail
 
-### Controls
+### User Features
+- **Authentication System**: Secure user registration and login with Supabase
+- **Route Saving**: Save optimized routes to personal collection
+- **Route Management**: Organize routes with custom names, tags, and privacy settings
 - **Parameter Tuning**: Adjustable settings for iterations, waypoints, and trail preferences
 - **Route Preferences**: Configurable penalties and bonuses for different terrain types
 - **Example Routes**: Pre-loaded routes for popular hiking destinations
-- **Real-time Updates**: Live preview of route changes
 
 ### Route Planning
 - **Linear Route Detection**: Automatic detection and optimization for park/linear trails
@@ -55,11 +57,24 @@ Experience the app at: **[https://legendary-guacamole-dusky.vercel.app](https://
    ```
 
 3. **Environment Setup**
-   Create a `.env.local` file:
+   Copy `.env.example` to `.env.local` and fill in your values:
    ```bash
-   NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=your_mapbox_public_token_here
+   cp .env.example .env.local
    ```
-   Get your free Mapbox token at [mapbox.com](https://www.mapbox.com/)
+   
+   Required environment variables:
+   ```bash
+   # Mapbox (required for maps)
+   NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=your_mapbox_public_token_here
+   
+   # Supabase (required for authentication and route saving)
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+   ```
+   
+   Get your tokens:
+   - **Mapbox**: [mapbox.com](https://www.mapbox.com/) (free tier available)
+   - **Supabase**: [supabase.com](https://supabase.com/) (free tier available)
 
 4. **Start development server**
    ```bash
@@ -69,27 +84,46 @@ Experience the app at: **[https://legendary-guacamole-dusky.vercel.app](https://
 5. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
+## 🚀 Deployment
+
+For production deployment, see the comprehensive [DEPLOYMENT.md](./DEPLOYMENT.md) guide.
+
+**Quick deployment checklist:**
+1. Configure environment variables in your hosting platform
+2. Deploy database tables to Supabase
+3. Test authentication and route saving functionality
+
+**Common hosting platforms:**
+- **Vercel**: Automatic deployment with GitHub integration
+- **Netlify**: Easy static site deployment
+- **Railway/Render**: Full-stack hosting options
+
 ## 🏗️ Architecture
 
 ### Core Technologies
-- **Framework**: Next.js 15 with App Router
-- **Language**: TypeScript with strict mode
-- **Styling**: Tailwind CSS v4
-- **Mapping**: Mapbox GL JS
-- **State Management**: React hooks
-- **Testing**: Jest with React Testing Library
+- **Framework**: Next.js 15 with App Router and TypeScript
+- **Frontend**: React 19 with hooks and context for state management
+- **Styling**: Tailwind CSS v4 with semantic component architecture
+- **Mapping**: Mapbox GL JS for interactive terrain visualization
+- **Backend**: Supabase for authentication, database, and real-time features
+- **Database**: PostgreSQL with Row Level Security (RLS) policies
+- **Testing**: Jest with React Testing Library and comprehensive coverage
 
 ### Key Components
+- **Authentication System**: User registration, login, and session management
 - **Route Input Form**: Coordinate input with validation and example routes
 - **Pathfinding Engine**: Modular A* implementation with terrain analysis
 - **Interactive Map**: Mapbox visualization with elevation-colored routes  
 - **Elevation Chart**: Profiling with gradient visualization
-- **Control Panel**: Pathfinding parameter tuning
+- **Route Summary Card**: Metrics display with integrated save functionality
+- **Save Route Button**: Modal-based route saving with privacy controls
+- **Control Panel**: Pathfinding parameter tuning and preferences
 
 ### API Integration
-- **Open-Meteo Elevation API**: Elevation data
-- **OpenStreetMap Overpass API**: Trail and path data
-- **Mapbox APIs**: Terrain visualization and geocoding
+- **Supabase**: User authentication, route persistence, and real-time database
+- **Open-Meteo Elevation API**: High-resolution elevation data for pathfinding
+- **OpenStreetMap Overpass API**: Hiking trails and path network data
+- **Mapbox APIs**: Interactive terrain visualization and geocoding services
 
 ## 🛠️ Development
 
@@ -146,11 +180,19 @@ src/
 ## Current Status
 
 ### Implemented Features
-- Core A* pathfinding algorithm with terrain analysis
-- Interactive Mapbox GL JS mapping with elevation visualization
-- Pathfinding controls and parameter tuning
-- Trail data integration with OpenStreetMap
-- Modular architecture with clean separation of concerns
-- Responsive UI design
-- Unit test coverage across all modules
+- **Core A* pathfinding algorithm** with terrain analysis and Tobler's hiking function
+- **Interactive Mapbox GL JS mapping** with elevation visualization and route overlay
+- **User authentication system** with Supabase integration
+- **Route persistence** - save, organize, and manage optimized routes
+- **Pathfinding controls** and parameter tuning for customization
+- **Trail data integration** with OpenStreetMap via Overpass API
+- **Modular architecture** with clean separation of concerns and semantic components
+- **Responsive UI design** with Tailwind CSS and professional styling
+- **Comprehensive test coverage** across all modules and components
+
+### In Development
+- User dashboard for route management
+- Public route gallery for community browsing
+- Enhanced terrain analysis with weather integration
+- Advanced multi-objective optimization
 
