@@ -149,7 +149,7 @@ export function SaveRouteButton({
       {/* Save Route Button */}
       <button
         onClick={handleSaveClick}
-        className={`${buttonStyles} ${className || ''}`}
+        className={`${buttonStyles} ${STYLES.FLEX_ITEMS_CENTER} ${className || ''}`}
         title={isAuthenticated ? UI_TEXT.SAVE_ROUTE : UI_TEXT.SIGN_IN_TO_SAVE}
       >
         <svg className={`${STYLES.ICON_SM} mr-2`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
