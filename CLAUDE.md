@@ -20,9 +20,20 @@ cd alpine-route-optimizer
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
 
+### Testing
+- `npm test` - Run Jest unit tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run test:coverage` - Run tests with coverage report
+
 ### TypeScript
 - TypeScript configuration uses strict mode with Next.js optimizations
 - Path alias `@/*` maps to `./src/*`
+
+### Testing Framework
+- **Jest** with React Testing Library for unit testing
+- **Test Coverage**: 16 test files covering core algorithms, utilities, types, and constants
+- **Test Structure**: Tests located in `__tests__` directories alongside source files
+- **Testing Philosophy**: Focus on algorithm correctness, API integration, and type validation
 
 ## Architecture
 
@@ -32,7 +43,7 @@ The application implements A* pathfinding algorithm for route optimization:
 - **Modular Architecture**: Broken into focused components for maintainability:
   - `pathfinding/utilities.ts` - Core A* utilities, movement cost, and heuristics
   - `pathfinding/trail-detection.ts` - Trail detection, chaining, and linear route optimization
-  - `pathfinding/terrain/terrain-analyzer.ts` - Comprehensive terrain analysis with Tobler's function
+  - `pathfinding/terrain/terrain-analyzer.ts` - Terrain analysis with Tobler's function
   - `pathfinding/data-structures/priority-queue.ts` - Optimized priority queue implementation
 - Uses priority queue with heuristic cost calculation
 - Factors in elevation gain, distance, terrain steepness, and trail availability
@@ -43,10 +54,10 @@ The application implements A* pathfinding algorithm for route optimization:
 - **Route Input**: `src/components/forms/route-input-form.tsx` - User input with validation and example routes
 - **Interactive Map**: `src/components/ui/route-map.tsx` - Mapbox GL JS integration with elevation-colored routes
 - **Elevation Chart**: `src/components/ui/elevation-chart.tsx` - Dynamic profiling with gradient visualization
-- **Pathfinding Controls**: `src/components/ui/pathfinding-controls.tsx` - Comprehensive parameter tuning
+- **Pathfinding Controls**: `src/components/ui/pathfinding-controls.tsx` - Parameter tuning
 - **Semantic UI**: `src/components/ui/semantic/` - Business logic components like `<FindOptimalRouteButton>`
 - **Constants**: `src/constants/` - Centralized text, styles, and color constants for i18n
-- **Types**: `src/types/` - Comprehensive TypeScript interfaces for pathfinding and route data
+- **Types**: `src/types/` - TypeScript interfaces for pathfinding and route data
 - **Data Flow**: Main page (`src/app/page.tsx`) coordinates between input, pathfinding, and visualization
 
 ### External APIs
@@ -63,7 +74,7 @@ Well-defined TypeScript interfaces in `src/types/`:
 - `RoutePoint` - Extended coordinate with elevation and risk factors  
 - `Route` - Complete route with metadata (distance, difficulty, time estimates)
 - `PathfindingNode` - A* algorithm node structure with parent tracking
-- `PathfindingOptions` - Comprehensive configuration for algorithm tuning
+- `PathfindingOptions` - Configuration for algorithm tuning
 - `TrailSegment` & `TrailNetwork` - Trail data structures with spatial indexing
 - `TerrainType` - Enum for different terrain classifications
 
@@ -94,7 +105,7 @@ Located in `src/lib/utils/index.ts`:
 - Advanced pathfinding controls with real-time parameter tuning
 
 **🚧 Current Focus:**
-See `DEVELOPMENT_TODO_LIST.md` for the comprehensive enhancement roadmap:
+See `DEVELOPMENT_TODO_LIST.md` for the enhancement roadmap:
 - **Phase 1**: Enhanced terrain analysis with higher resolution data
 - **Phase 2**: Advanced trail network optimization and chaining
 - **Phase 3**: Multi-objective optimization (distance, time, safety, scenic value)

@@ -1,7 +1,7 @@
 /**
  * Terrain Analysis Module for Alpine Route Optimization
  * 
- * This module provides comprehensive terrain analysis functionality including:
+ * This module provides terrain analysis functionality including:
  * - Terrain type detection and classification
  * - Slope calculation and analysis
  * - Hiking speed estimation using Tobler's function
@@ -112,7 +112,7 @@ export const CONVERSION_CONSTANTS = {
 // =============================================================================
 
 /**
- * Comprehensive terrain analysis result
+ * Terrain analysis result
  */
 export interface TerrainAnalysis {
   /** Detected terrain type */
@@ -398,11 +398,11 @@ export function getTerrainMultiplier(terrainType: TerrainType): number {
 }
 
 // =============================================================================
-// COMPREHENSIVE TERRAIN ANALYSIS
+// TERRAIN ANALYSIS
 // =============================================================================
 
 /**
- * Perform comprehensive terrain analysis for a coordinate pair.
+ * Perform terrain analysis for a coordinate pair.
  * 
  * This function combines all terrain analysis components to provide a complete
  * assessment of terrain characteristics between two points.
@@ -410,7 +410,7 @@ export function getTerrainMultiplier(terrainType: TerrainType): number {
  * @param from - Starting coordinate
  * @param to - Destination coordinate
  * @param elevationPoints - Optional elevation data for enhanced analysis
- * @returns Complete terrain analysis result
+ * @returns Terrain analysis result
  * 
  * @example
  * ```typescript

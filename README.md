@@ -1,5 +1,7 @@
 # Alpine Route Optimizer 🗻
 
+[![Tests](https://github.com/Sunsvea/legendary-guacamole/actions/workflows/test.yml/badge.svg)](https://github.com/Sunsvea/legendary-guacamole/actions/workflows/test.yml)
+
 A Next.js application that uses A* pathfinding to plan optimal mountain hiking routes. The app analyzes elevation data, terrain complexity, and trail networks to generate safe, efficient routes with interactive visualization.
 
 ## 🌐 Live Demo
@@ -75,6 +77,7 @@ Experience the app at: **[https://legendary-guacamole-dusky.vercel.app](https://
 - **Styling**: Tailwind CSS v4
 - **Mapping**: Mapbox GL JS
 - **State Management**: React hooks
+- **Testing**: Jest with React Testing Library
 
 ### Key Components
 - **Route Input Form**: Coordinate input with validation and example routes
@@ -95,6 +98,9 @@ Experience the app at: **[https://legendary-guacamole-dusky.vercel.app](https://
 - `npm run build` - Build for production
 - `npm run start` - Start production server  
 - `npm run lint` - Run ESLint
+- `npm test` - Run Jest unit tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run test:coverage` - Run tests with coverage report
 
 ### Project Structure
 ```
@@ -146,7 +152,5 @@ src/
 - Trail data integration with OpenStreetMap
 - Modular architecture with clean separation of concerns
 - Responsive UI design
+- Unit test coverage across all modules
 
-## License
-
-This project is available for educational and personal use. See repository for specific licensing terms.

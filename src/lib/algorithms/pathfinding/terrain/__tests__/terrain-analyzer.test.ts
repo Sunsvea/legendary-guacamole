@@ -1,7 +1,7 @@
 /**
- * Comprehensive unit tests for terrain analysis functions
+ * Unit tests for terrain analysis functions
  * Tests slope calculations, hiking speed estimation using Tobler's function,
- * terrain type detection, and comprehensive terrain analysis capabilities
+ * terrain type detection, and terrain analysis capabilities
  */
 
 import {
@@ -423,7 +423,7 @@ describe('analyzeTerrainBetweenPoints', () => {
     jest.clearAllMocks();
   });
 
-  it('performs comprehensive terrain analysis', () => {
+  it('performs terrain analysis', () => {
     const from: Coordinate = { lat: 47.0000, lng: 8.0000, elevation: 1000 };
     const to: Coordinate = { lat: 47.0010, lng: 8.0010, elevation: 1200 };
 
