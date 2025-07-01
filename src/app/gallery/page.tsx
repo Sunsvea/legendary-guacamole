@@ -10,6 +10,7 @@ import { DatabaseRoute } from '@/types/database';
 import { GalleryLayout } from '@/components/gallery/gallery-layout';
 import { RouteGalleryGrid } from '@/components/gallery/route-gallery-grid';
 import { GalleryFilters } from '@/components/gallery/gallery-filters';
+import { RouteDetailModal } from '@/components/gallery/route-detail-modal';
 import { STYLES } from '@/constants/styles';
 
 /**
@@ -31,7 +32,9 @@ export default function GalleryPage() {
   const [routes, setRoutes] = useState<DatabaseRoute[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [, setSelectedRoute] = useState<DatabaseRoute | null>(null);
+  const [selectedRoute, setSelectedRoute] = useState<DatabaseRoute | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [copyMessage, setCopyMessage] = useState<string | null>(null);
   const [filters, setFilters] = useState<GalleryFilters>({
     searchQuery: '',
     difficulty: null,
@@ -122,7 +125,27 @@ export default function GalleryPage() {
    */
   const handleRouteSelect = (route: DatabaseRoute) => {
     setSelectedRoute(route);
-    // TODO: Show route details modal or navigate to route detail page
+    setIsModalOpen(true);
+  };
+
+  /**
+   * Handle modal close
+   */
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedRoute(null);
+    setCopyMessage(null);
+  };
+
+  /**
+   * Handle successful route copy
+   */
+  const handleCopySuccess = (copiedRoute: DatabaseRoute) => {
+    setCopyMessage('Route copied successfully!');
+    // Close modal after a short delay
+    setTimeout(() => {
+      handleModalClose();
+    }, 1500);
   };
 
   /**
@@ -194,6 +217,13 @@ export default function GalleryPage() {
 
   return (
     <GalleryLayout>
+      {/* Copy Success Message */}
+      {copyMessage && (
+        <div className="fixed top-4 right-4 bg-green-100 border border-green-300 text-green-700 px-4 py-2 rounded-lg z-50">
+          {copyMessage}
+        </div>
+      )}
+
       {/* Gallery Header */}
       <div className="mb-8">
         <h1 className={STYLES.HEADING_3XL}>Route Gallery</h1>
@@ -226,6 +256,16 @@ export default function GalleryPage() {
           />
         </div>
       </div>
+
+      {/* Route Detail Modal */}
+      {selectedRoute && (
+        <RouteDetailModal
+          route={selectedRoute}
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          onCopySuccess={handleCopySuccess}
+        />
+      )}
     </GalleryLayout>
   );
 }
