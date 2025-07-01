@@ -49,8 +49,8 @@ describe('Database Schema and RLS Integration', () => {
 
   describe('Routes Table Schema', () => {
     it('should have proper structure for saving routes', async () => {
-      const mockInsert = jest.fn().mockResolvedValue({
-        data: [{
+      const mockSingle = jest.fn().mockResolvedValue({
+        data: {
           id: mockRoute.id,
           user_id: userId,
           name: mockRoute.name,
@@ -60,8 +60,16 @@ describe('Database Schema and RLS Integration', () => {
           tags: [],
           created_at: '2025-01-01T10:00:00Z',
           updated_at: '2025-01-01T10:00:00Z'
-        }],
+        },
         error: null
+      });
+
+      const mockSelect = jest.fn().mockReturnValue({
+        single: mockSingle
+      });
+
+      const mockInsert = jest.fn().mockReturnValue({
+        select: mockSelect
       });
 
       mockSupabaseClient.from.mockReturnValue({
@@ -234,9 +242,17 @@ describe('Database Schema and RLS Integration', () => {
         code: 'CONNECTION_ERROR'
       };
 
-      const mockInsert = jest.fn().mockResolvedValue({
+      const mockSingle = jest.fn().mockResolvedValue({
         data: null,
         error: mockError
+      });
+
+      const mockSelect = jest.fn().mockReturnValue({
+        single: mockSingle
+      });
+
+      const mockInsert = jest.fn().mockReturnValue({
+        select: mockSelect
       });
 
       mockSupabaseClient.from.mockReturnValue({

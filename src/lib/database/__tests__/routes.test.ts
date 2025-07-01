@@ -4,15 +4,7 @@
 
 // Mock Supabase client
 const mockSupabaseClient = {
-  from: jest.fn(() => ({
-    insert: jest.fn(),
-    select: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    eq: jest.fn(),
-    order: jest.fn(),
-    range: jest.fn(),
-  })),
+  from: jest.fn(),
 };
 
 jest.mock('../../supabase', () => ({
@@ -58,9 +50,17 @@ describe('Route Database Operations', () => {
     it('should successfully save a new route', async () => {
       const mockDbRoute = toDatabaseRoute(mockRoute, userId, DEFAULT_PATHFINDING_OPTIONS);
       
-      const mockInsert = jest.fn().mockResolvedValue({
-        data: [mockDbRoute],
+      const mockSingle = jest.fn().mockResolvedValue({
+        data: mockDbRoute,
         error: null
+      });
+
+      const mockSelect = jest.fn().mockReturnValue({
+        single: mockSingle
+      });
+
+      const mockInsert = jest.fn().mockReturnValue({
+        select: mockSelect
       });
 
       mockSupabaseClient.from.mockReturnValue({
@@ -89,9 +89,17 @@ describe('Route Database Operations', () => {
     it('should save route with custom options', async () => {
       const mockDbRoute = toDatabaseRoute(mockRoute, userId, DEFAULT_PATHFINDING_OPTIONS, true, ['hiking']);
       
-      const mockInsert = jest.fn().mockResolvedValue({
-        data: [mockDbRoute],
+      const mockSingle = jest.fn().mockResolvedValue({
+        data: mockDbRoute,
         error: null
+      });
+
+      const mockSelect = jest.fn().mockReturnValue({
+        single: mockSingle
+      });
+
+      const mockInsert = jest.fn().mockReturnValue({
+        select: mockSelect
       });
 
       mockSupabaseClient.from.mockReturnValue({
@@ -121,9 +129,17 @@ describe('Route Database Operations', () => {
         code: 'CONNECTION_ERROR'
       };
 
-      const mockInsert = jest.fn().mockResolvedValue({
+      const mockSingle = jest.fn().mockResolvedValue({
         data: null,
         error: mockError
+      });
+
+      const mockSelect = jest.fn().mockReturnValue({
+        single: mockSingle
+      });
+
+      const mockInsert = jest.fn().mockReturnValue({
+        select: mockSelect
       });
 
       mockSupabaseClient.from.mockReturnValue({
@@ -138,7 +154,15 @@ describe('Route Database Operations', () => {
     });
 
     it('should handle exceptions', async () => {
-      const mockInsert = jest.fn().mockRejectedValue(new Error('Network error'));
+      const mockSingle = jest.fn().mockRejectedValue(new Error('Network error'));
+
+      const mockSelect = jest.fn().mockReturnValue({
+        single: mockSingle
+      });
+
+      const mockInsert = jest.fn().mockReturnValue({
+        select: mockSelect
+      });
 
       mockSupabaseClient.from.mockReturnValue({
         insert: mockInsert
@@ -273,9 +297,17 @@ describe('Route Database Operations', () => {
       const updatedRoute = { ...mockRoute, name: 'Updated Route Name' };
       const mockDbRoute = toDatabaseRoute(updatedRoute, userId, DEFAULT_PATHFINDING_OPTIONS);
 
-      const mockEq2 = jest.fn().mockResolvedValue({
-        data: [mockDbRoute],
+      const mockSingle = jest.fn().mockResolvedValue({
+        data: mockDbRoute,
         error: null
+      });
+
+      const mockSelect = jest.fn().mockReturnValue({
+        single: mockSingle
+      });
+
+      const mockEq2 = jest.fn().mockReturnValue({
+        select: mockSelect
       });
 
       const mockEq1 = jest.fn().mockReturnValue({
@@ -304,6 +336,47 @@ describe('Route Database Operations', () => {
       );
       expect(mockEq1).toHaveBeenCalledWith('id', mockRoute.id);
       expect(mockEq2).toHaveBeenCalledWith('user_id', userId);
+      expect(mockSelect).toHaveBeenCalledWith();
+      expect(mockSingle).toHaveBeenCalled();
+    });
+
+    it('should return error when update fails', async () => {
+      const updatedRoute = { ...mockRoute, name: 'Updated Route Name' };
+      const mockError = {
+        message: 'Route not found',
+        code: 'NOT_FOUND'
+      };
+
+      const mockSingle = jest.fn().mockResolvedValue({
+        data: null,
+        error: mockError
+      });
+
+      const mockSelect = jest.fn().mockReturnValue({
+        single: mockSingle
+      });
+
+      const mockEq2 = jest.fn().mockReturnValue({
+        select: mockSelect
+      });
+
+      const mockEq1 = jest.fn().mockReturnValue({
+        eq: mockEq2
+      });
+
+      const mockUpdate = jest.fn().mockReturnValue({
+        eq: mockEq1
+      });
+
+      mockSupabaseClient.from.mockReturnValue({
+        update: mockUpdate
+      });
+
+      const result = await updateRoute(mockRoute.id, userId, updatedRoute, DEFAULT_PATHFINDING_OPTIONS);
+
+      expect(result.success).toBe(false);
+      expect(result.data).toBeNull();
+      expect(result.error).toEqual(mockError);
     });
   });
 
