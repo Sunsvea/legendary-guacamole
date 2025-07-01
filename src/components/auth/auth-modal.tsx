@@ -202,7 +202,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
               id="email"
               value={formState.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 ${
                 formState.errors.email ? 'border-red-300' : 'border-gray-300'
               }`}
               placeholder="your.email@example.com"
@@ -223,7 +223,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
               id="password"
               value={formState.password}
               onChange={(e) => handleInputChange('password', e.target.value)}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 ${
                 formState.errors.password ? 'border-red-300' : 'border-gray-300'
               }`}
               placeholder="Enter your password"
@@ -245,7 +245,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
                 id="confirmPassword"
                 value={formState.confirmPassword}
                 onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 ${
                   formState.errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
                 }`}
                 placeholder="Confirm your password"
