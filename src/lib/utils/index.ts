@@ -33,13 +33,28 @@ export function calculateElevationGain(points: Array<{ elevation: number }>): nu
   return gain;
 }
 
-export function formatDistance(meters: number): string {
-  if (meters < 1000) {
-    return `${Math.round(meters)}m`;
+export function formatDistance(kilometers: number): string {
+  if (kilometers < 1) {
+    return `${Math.round(kilometers * 1000)} m`;
   }
-  return `${(meters / 1000).toFixed(1)}km`;
+  return `${kilometers.toFixed(1)} km`;
 }
 
 export function formatElevation(meters: number): string {
   return `${Math.round(meters)}m`;
+}
+
+export function formatElevationGain(meters: number): string {
+  return `${Math.round(meters)} m`;
+}
+
+export function formatDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  
+  if (hours > 0) {
+    return `${hours}.${Math.round(minutes / 6)} hrs`;
+  }
+  
+  return `${minutes} min`;
 }
