@@ -154,7 +154,7 @@ export function RouteDetailModal({
 
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-3">Elevation Profile</h3>
-            <div className="h-80 rounded-lg overflow-hidden border">
+            <div className="h-110 rounded-lg overflow-hidden border">
               <ElevationChart points={route.route_data.points} />
             </div>
           </div>

@@ -14,6 +14,7 @@ import { RouteStatsummary } from '@/components/dashboard/route-stats-summary';
 import { RouteSearchFilters } from '@/components/dashboard/route-search-filters';
 import { RouteEmptyState } from '@/components/dashboard/route-empty-state';
 import { AuthModal } from '@/components/auth/auth-modal';
+import { RouteDetailModal } from '@/components/gallery/route-detail-modal';
 import { UI_TEXT } from '@/constants/ui-text';
 import { STYLES } from '@/constants/styles';
 
@@ -36,6 +37,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [selectedRoute, setSelectedRoute] = useState<DatabaseRoute | null>(null);
   const [filters, setFilters] = useState<RouteFilters>({
     searchQuery: '',
     difficulty: null,
@@ -122,6 +124,29 @@ export default function DashboardPage() {
     setRoutes(prev => prev.map(route => 
       route.id === updatedRoute.id ? updatedRoute : route
     ));
+  };
+
+  /**
+   * Handle route selection (open modal)
+   */
+  const handleRouteSelect = (route: DatabaseRoute) => {
+    setSelectedRoute(route);
+  };
+
+  /**
+   * Handle modal close
+   */
+  const handleModalClose = () => {
+    setSelectedRoute(null);
+  };
+
+  /**
+   * Handle successful route copy (for consistency with gallery)
+   */
+  const handleCopySuccess = (copiedRoute: DatabaseRoute) => {
+    // Since this is the user's own dashboard, we add the copied route
+    setRoutes(prev => [copiedRoute, ...prev]);
+    setSelectedRoute(null);
   };
 
   /**
@@ -233,10 +258,21 @@ export default function DashboardPage() {
               routes={filteredRoutes}
               onRouteDelete={handleRouteDelete}
               onRouteUpdate={handleRouteUpdate}
+              onRouteSelect={handleRouteSelect}
             />
           )}
         </div>
       </div>
+
+      {/* Route Detail Modal */}
+      {selectedRoute && (
+        <RouteDetailModal
+          route={selectedRoute}
+          isOpen={true}
+          onClose={handleModalClose}
+          onCopySuccess={handleCopySuccess}
+        />
+      )}
     </DashboardLayout>
   );
 }

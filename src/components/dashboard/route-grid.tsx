@@ -9,9 +9,10 @@ interface RouteGridProps {
   routes: DatabaseRoute[];
   onRouteDelete: (routeId: string) => void;
   onRouteUpdate: (route: DatabaseRoute) => void;
+  onRouteSelect: (route: DatabaseRoute) => void;
 }
 
-export function RouteGrid({ routes, onRouteDelete, onRouteUpdate }: RouteGridProps) {
+export function RouteGrid({ routes, onRouteDelete, onRouteUpdate, onRouteSelect }: RouteGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       {routes.map(route => (
@@ -20,6 +21,7 @@ export function RouteGrid({ routes, onRouteDelete, onRouteUpdate }: RouteGridPro
           route={route}
           onDelete={onRouteDelete}
           onUpdate={onRouteUpdate}
+          onRouteSelect={onRouteSelect}
         />
       ))}
     </div>

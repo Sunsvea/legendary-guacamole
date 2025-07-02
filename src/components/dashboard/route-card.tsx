@@ -16,13 +16,13 @@ import {
 import { DatabaseRoute } from '@/types/database';
 import { deleteRoute, updateRoute } from '@/lib/database/routes';
 import { useAuth } from '@/contexts/auth-context';
-import { RouteMap } from '@/components/ui/route-map';
 import { STYLES } from '@/constants/styles';
 
 interface RouteCardProps {
   route: DatabaseRoute;
   onDelete: (routeId: string) => void;
   onUpdate: (route: DatabaseRoute) => void;
+  onRouteSelect: (route: DatabaseRoute) => void;
 }
 
 interface MetricProps {
@@ -41,7 +41,7 @@ function Metric({ icon, value, label }: MetricProps) {
   );
 }
 
-export function RouteCard({ route, onDelete, onUpdate }: RouteCardProps) {
+export function RouteCard({ route, onDelete, onUpdate, onRouteSelect }: RouteCardProps) {
   const { user } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -106,8 +106,19 @@ export function RouteCard({ route, onDelete, onUpdate }: RouteCardProps) {
     }
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger route select if clicking on menu or menu buttons
+    if (showMenu || (e.target as Element).closest('button') || (e.target as Element).closest('.dropdown-menu')) {
+      return;
+    }
+    onRouteSelect(route);
+  };
+
   return (
-    <div className={`${STYLES.CARD} hover:shadow-lg transition-shadow relative`}>
+    <div 
+      className={`${STYLES.CARD} hover:shadow-lg transition-shadow relative cursor-pointer`}
+      onClick={handleCardClick}
+    >
       {/* Header */}
       <div className={`${STYLES.FLEX_BETWEEN} mb-4`}>
         <div className="flex-1 min-w-0">
@@ -131,7 +142,7 @@ export function RouteCard({ route, onDelete, onUpdate }: RouteCardProps) {
           
           {/* Dropdown Menu */}
           {showMenu && (
-            <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-md shadow-lg ring-1 ring-gray-200 z-10">
+            <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-md shadow-lg ring-1 ring-gray-200 z-10 dropdown-menu">
               <div className="py-1">
                 <button
                   onClick={handleToggleVisibility}
@@ -164,14 +175,6 @@ export function RouteCard({ route, onDelete, onUpdate }: RouteCardProps) {
         </div>
       </div>
 
-      {/* Route Preview Map */}
-      {route.route_data.points && route.route_data.points.length > 0 && (
-        <div className="mb-4">
-          <div className="h-32 rounded-lg overflow-hidden border border-gray-200">
-            <RouteMap points={route.route_data.points} />
-          </div>
-        </div>
-      )}
 
       {/* Route Metrics */}
       <div className="grid grid-cols-2 gap-3 mb-4">
