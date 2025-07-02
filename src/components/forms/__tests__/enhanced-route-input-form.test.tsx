@@ -1,37 +1,27 @@
 /**
- * Tests for enhanced route input form with interactive features
+ * Tests for enhanced route input form with map-only interface
  */
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { EnhancedRouteInputForm } from '../enhanced-route-input-form';
 
-// Mock the components we depend on
-jest.mock('@/components/ui/location-button', () => ({
-  LocationButton: jest.fn(({ onLocationSelect }) => (
-    <button
-      data-testid="location-button"
-      onClick={() => onLocationSelect({ lat: 46.5197, lng: 6.6323 })}
-    >
-      Use Current Location
-    </button>
-  ))
-}));
-
+// Mock the coordinate selector map
 jest.mock('@/components/ui/coordinate-selector-map', () => ({
-  CoordinateSelectorMap: jest.fn(({ onCoordinateSelect, selectionMode, startCoordinate, endCoordinate }) => (
-    <div
-      data-testid="coordinate-selector-map"
+  CoordinateSelectorMap: ({ onCoordinateSelect, selectionMode }: any) => (
+    <div 
+      data-testid="coordinate-selector-map" 
       onClick={() => {
-        if (selectionMode) {
-          onCoordinateSelect({ lat: 46.8182, lng: 8.2275 }, selectionMode);
+        if (selectionMode && onCoordinateSelect) {
+          onCoordinateSelect(
+            { lat: 46.5197, lng: 6.6323 }, 
+            selectionMode
+          );
         }
       }}
     >
       Map Component - Mode: {selectionMode || 'none'}
-      {startCoordinate && <span data-testid="start-marker">Start Marker</span>}
-      {endCoordinate && <span data-testid="end-marker">End Marker</span>}
     </div>
-  ))
+  )
 }));
 
 describe('EnhancedRouteInputForm', () => {
@@ -43,66 +33,30 @@ describe('EnhancedRouteInputForm', () => {
     window.alert = jest.fn();
   });
 
-  it('should render enhanced route input form', () => {
+  it('should render enhanced route input form with map', () => {
     render(
       <EnhancedRouteInputForm onRouteSubmit={mockOnRouteSubmit} />
     );
 
     expect(screen.getByText(/plan your route/i)).toBeInTheDocument();
-    // In map mode by default, map should be visible
     expect(screen.getByTestId('coordinate-selector-map')).toBeInTheDocument();
   });
 
-  it('should show map selection by default', () => {
+  it('should show selection buttons', () => {
     render(
       <EnhancedRouteInputForm onRouteSubmit={mockOnRouteSubmit} />
     );
 
-    // Map should be visible by default
-    expect(screen.getByTestId('coordinate-selector-map')).toBeInTheDocument();
-    // Coordinate inputs should not be visible by default
-    expect(screen.queryByPlaceholderText(/latitude/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /select start point/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /select end point/i })).toBeInTheDocument();
   });
 
-  it('should toggle to coordinate mode', () => {
+  it('should handle start point selection', () => {
     render(
       <EnhancedRouteInputForm onRouteSubmit={mockOnRouteSubmit} />
     );
 
-    const coordinateModeButton = screen.getByText(/use coordinates/i);
-    fireEvent.click(coordinateModeButton);
-
-    expect(screen.getAllByPlaceholderText(/latitude/i)).toHaveLength(2);
-    expect(screen.getAllByPlaceholderText(/longitude/i)).toHaveLength(2);
-  });
-
-  it('should handle location button click for start point', async () => {
-    render(
-      <EnhancedRouteInputForm onRouteSubmit={mockOnRouteSubmit} />
-    );
-
-    // Switch to coordinate mode first
-    const coordinateModeButton = screen.getByText(/use coordinates/i);
-    fireEvent.click(coordinateModeButton);
-
-    // Click start point location button
-    const locationButtons = screen.getAllByTestId('location-button');
-    fireEvent.click(locationButtons[0]);
-
-    await waitFor(() => {
-      expect(screen.getByDisplayValue('46.5197')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('6.6323')).toBeInTheDocument();
-    });
-  });
-
-  it('should handle map coordinate selection in map mode', () => {
-    render(
-      <EnhancedRouteInputForm onRouteSubmit={mockOnRouteSubmit} />
-    );
-
-    // Already in map mode by default, no need to switch
-
-    // Click "Select Start Point" button (find the button specifically)
+    // Click "Select Start Point" button
     const selectStartButton = screen.getByRole('button', { name: /select start point/i });
     fireEvent.click(selectStartButton);
 
@@ -110,57 +64,52 @@ describe('EnhancedRouteInputForm', () => {
     const map = screen.getByTestId('coordinate-selector-map');
     fireEvent.click(map);
 
-    // Should switch back to showing start point as selected
+    // Should show start point selected
     expect(screen.getByText(/start point selected/i)).toBeInTheDocument();
   });
 
-  it('should handle coordinate input changes', () => {
+  it('should handle end point selection', () => {
     render(
       <EnhancedRouteInputForm onRouteSubmit={mockOnRouteSubmit} />
     );
 
-    // Switch to coordinate mode first
-    const coordinateModeButton = screen.getByText(/use coordinates/i);
-    fireEvent.click(coordinateModeButton);
+    // Click "Select End Point" button
+    const selectEndButton = screen.getByRole('button', { name: /select end point/i });
+    fireEvent.click(selectEndButton);
 
-    const latInputs = screen.getAllByPlaceholderText(/latitude/i);
-    const lngInputs = screen.getAllByPlaceholderText(/longitude/i);
+    // Click on map
+    const map = screen.getByTestId('coordinate-selector-map');
+    fireEvent.click(map);
 
-    fireEvent.change(latInputs[0], { target: { value: '46.5197' } });
-    fireEvent.change(lngInputs[0], { target: { value: '6.6323' } });
-
-    expect(latInputs[0]).toHaveValue(46.5197);
-    expect(lngInputs[0]).toHaveValue(6.6323);
+    // Should show end point selected
+    expect(screen.getByText(/end point selected/i)).toBeInTheDocument();
   });
 
-  it('should validate and submit route', async () => {
+  it('should validate and submit route', () => {
     render(
       <EnhancedRouteInputForm onRouteSubmit={mockOnRouteSubmit} />
     );
 
-    // Switch to coordinate mode first
-    const coordinateModeButton = screen.getByText(/use coordinates/i);
-    fireEvent.click(coordinateModeButton);
+    // Select start point
+    const selectStartButton = screen.getByRole('button', { name: /select start point/i });
+    fireEvent.click(selectStartButton);
+    
+    const map = screen.getByTestId('coordinate-selector-map');
+    fireEvent.click(map);
 
-    // Fill in coordinates
-    const latInputs = screen.getAllByPlaceholderText(/latitude/i);
-    const lngInputs = screen.getAllByPlaceholderText(/longitude/i);
-
-    fireEvent.change(latInputs[0], { target: { value: '46.5197' } });
-    fireEvent.change(lngInputs[0], { target: { value: '6.6323' } });
-    fireEvent.change(latInputs[1], { target: { value: '46.8182' } });
-    fireEvent.change(lngInputs[1], { target: { value: '8.2275' } });
+    // Select end point
+    const selectEndButton = screen.getByRole('button', { name: /select end point/i });
+    fireEvent.click(selectEndButton);
+    fireEvent.click(map);
 
     // Submit form
     const submitButton = screen.getByText(/find optimal route/i);
     fireEvent.click(submitButton);
 
-    await waitFor(() => {
-      expect(mockOnRouteSubmit).toHaveBeenCalledWith(
-        { lat: 46.5197, lng: 6.6323 },
-        { lat: 46.8182, lng: 8.2275 }
-      );
-    });
+    expect(mockOnRouteSubmit).toHaveBeenCalledWith(
+      { lat: 46.5197, lng: 6.6323 },
+      { lat: 46.5197, lng: 6.6323 }
+    );
   });
 
   it('should show validation error for incomplete coordinates', () => {
@@ -168,11 +117,11 @@ describe('EnhancedRouteInputForm', () => {
       <EnhancedRouteInputForm onRouteSubmit={mockOnRouteSubmit} />
     );
 
-    // Submit without filling coordinates
+    // Submit without selecting coordinates
     const submitButton = screen.getByText(/find optimal route/i);
     fireEvent.click(submitButton);
 
-    expect(window.alert).toHaveBeenCalledWith(expect.stringContaining('fill'));
+    expect(window.alert).toHaveBeenCalledWith('Please select both start and end points on the map.');
   });
 
   it('should be disabled when loading', () => {
@@ -183,28 +132,29 @@ describe('EnhancedRouteInputForm', () => {
     const submitButton = screen.getByText(/finding route/i);
     expect(submitButton).toBeDisabled();
 
-    // Toggle buttons should be disabled during loading
-    const coordinateButton = screen.getByText(/use coordinates/i);
-    expect(coordinateButton).toBeDisabled();
+    // Selection buttons should be disabled
+    const startButton = screen.getByRole('button', { name: /select start point/i });
+    const endButton = screen.getByRole('button', { name: /select end point/i });
     
-    const mapButton = screen.getByText(/use map/i);
-    expect(mapButton).toBeDisabled();
+    expect(startButton).toBeDisabled();
+    expect(endButton).toBeDisabled();
   });
 
-  it('should switch between coordinate and map input modes', () => {
+  it('should handle example route selection', () => {
     render(
       <EnhancedRouteInputForm onRouteSubmit={mockOnRouteSubmit} />
     );
 
-    // Start in coordinate mode
-    expect(screen.getByText(/use map/i)).toBeInTheDocument();
+    // Click example route dropdown
+    const exampleButton = screen.getByText(/use example route/i);
+    fireEvent.click(exampleButton);
 
-    // Switch to map mode
-    fireEvent.click(screen.getByText(/use map/i));
-    expect(screen.getByText(/use coordinates/i)).toBeInTheDocument();
+    // Click first example route
+    const firstExample = screen.getByText(/swiss alps, zermatt/i);
+    fireEvent.click(firstExample);
 
-    // Switch back to coordinate mode
-    fireEvent.click(screen.getByText(/use coordinates/i));
-    expect(screen.getByText(/use map/i)).toBeInTheDocument();
+    // Should show both points selected
+    expect(screen.getByText(/start point selected/i)).toBeInTheDocument();
+    expect(screen.getByText(/end point selected/i)).toBeInTheDocument();
   });
 });

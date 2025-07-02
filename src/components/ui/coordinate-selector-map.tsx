@@ -86,7 +86,18 @@ export function CoordinateSelectorMap({
         map.current = null;
       }
     };
-  }, [center.lat, center.lng, loading, onCoordinateSelect, selectionMode]);
+  }, [loading, onCoordinateSelect, selectionMode]);
+
+  // Update center when it changes (without recreating map)
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+
+    map.current.flyTo({
+      center: [center.lng, center.lat],
+      zoom: 8,
+      duration: 1000
+    });
+  }, [center.lat, center.lng, mapLoaded]);
 
   // Update cursor based on selection mode
   useEffect(() => {
