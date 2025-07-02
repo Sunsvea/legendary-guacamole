@@ -49,35 +49,41 @@ describe('EnhancedRouteInputForm', () => {
     );
 
     expect(screen.getByText(/plan your route/i)).toBeInTheDocument();
-    // In coordinate mode by default, no map should be visible
-    expect(screen.queryByTestId('coordinate-selector-map')).not.toBeInTheDocument();
+    // In map mode by default, map should be visible
+    expect(screen.getByTestId('coordinate-selector-map')).toBeInTheDocument();
   });
 
-  it('should show coordinate inputs by default', () => {
+  it('should show map selection by default', () => {
     render(
       <EnhancedRouteInputForm onRouteSubmit={mockOnRouteSubmit} />
     );
+
+    // Map should be visible by default
+    expect(screen.getByTestId('coordinate-selector-map')).toBeInTheDocument();
+    // Coordinate inputs should not be visible by default
+    expect(screen.queryByPlaceholderText(/latitude/i)).not.toBeInTheDocument();
+  });
+
+  it('should toggle to coordinate mode', () => {
+    render(
+      <EnhancedRouteInputForm onRouteSubmit={mockOnRouteSubmit} />
+    );
+
+    const coordinateModeButton = screen.getByText(/use coordinates/i);
+    fireEvent.click(coordinateModeButton);
 
     expect(screen.getAllByPlaceholderText(/latitude/i)).toHaveLength(2);
     expect(screen.getAllByPlaceholderText(/longitude/i)).toHaveLength(2);
-  });
-
-  it('should toggle to map mode', () => {
-    render(
-      <EnhancedRouteInputForm onRouteSubmit={mockOnRouteSubmit} />
-    );
-
-    const mapModeButton = screen.getByText(/use map/i);
-    fireEvent.click(mapModeButton);
-
-    expect(screen.getByText(/click on map to select start point/i)).toBeInTheDocument();
-    expect(screen.getByTestId('coordinate-selector-map')).toBeInTheDocument();
   });
 
   it('should handle location button click for start point', async () => {
     render(
       <EnhancedRouteInputForm onRouteSubmit={mockOnRouteSubmit} />
     );
+
+    // Switch to coordinate mode first
+    const coordinateModeButton = screen.getByText(/use coordinates/i);
+    fireEvent.click(coordinateModeButton);
 
     // Click start point location button
     const locationButtons = screen.getAllByTestId('location-button');
@@ -94,9 +100,7 @@ describe('EnhancedRouteInputForm', () => {
       <EnhancedRouteInputForm onRouteSubmit={mockOnRouteSubmit} />
     );
 
-    // Switch to map mode
-    const mapModeButton = screen.getByText(/use map/i);
-    fireEvent.click(mapModeButton);
+    // Already in map mode by default, no need to switch
 
     // Click "Select Start Point" button (find the button specifically)
     const selectStartButton = screen.getByRole('button', { name: /select start point/i });
@@ -115,6 +119,10 @@ describe('EnhancedRouteInputForm', () => {
       <EnhancedRouteInputForm onRouteSubmit={mockOnRouteSubmit} />
     );
 
+    // Switch to coordinate mode first
+    const coordinateModeButton = screen.getByText(/use coordinates/i);
+    fireEvent.click(coordinateModeButton);
+
     const latInputs = screen.getAllByPlaceholderText(/latitude/i);
     const lngInputs = screen.getAllByPlaceholderText(/longitude/i);
 
@@ -129,6 +137,10 @@ describe('EnhancedRouteInputForm', () => {
     render(
       <EnhancedRouteInputForm onRouteSubmit={mockOnRouteSubmit} />
     );
+
+    // Switch to coordinate mode first
+    const coordinateModeButton = screen.getByText(/use coordinates/i);
+    fireEvent.click(coordinateModeButton);
 
     // Fill in coordinates
     const latInputs = screen.getAllByPlaceholderText(/latitude/i);
@@ -171,14 +183,12 @@ describe('EnhancedRouteInputForm', () => {
     const submitButton = screen.getByText(/finding route/i);
     expect(submitButton).toBeDisabled();
 
-    const inputs = screen.getAllByRole('spinbutton');
-    inputs.forEach(input => {
-      expect(input).toBeDisabled();
-    });
-
-    // Mode toggle buttons should also be disabled
+    // Toggle buttons should be disabled during loading
     const coordinateButton = screen.getByText(/use coordinates/i);
     expect(coordinateButton).toBeDisabled();
+    
+    const mapButton = screen.getByText(/use map/i);
+    expect(mapButton).toBeDisabled();
   });
 
   it('should switch between coordinate and map input modes', () => {

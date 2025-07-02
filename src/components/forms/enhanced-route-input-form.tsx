@@ -42,7 +42,7 @@ const EXAMPLE_ROUTES = [
 ];
 
 export function EnhancedRouteInputForm({ onRouteSubmit, loading = false }: EnhancedRouteInputFormProps) {
-  const [inputMode, setInputMode] = useState<InputMode>('coordinates');
+  const [inputMode, setInputMode] = useState<InputMode>('map');
   const [selectionType, setSelectionType] = useState<SelectionType>(null);
   
   const [startLat, setStartLat] = useState('');
@@ -125,6 +125,36 @@ export function EnhancedRouteInputForm({ onRouteSubmit, loading = false }: Enhan
   const toggleInputMode = () => {
     setInputMode(inputMode === 'coordinates' ? 'map' : 'coordinates');
     setSelectionType(null);
+  };
+
+  /**
+   * Get the optimal center point for the map based on selection state
+   */
+  const getMapCenter = (): Coordinate => {
+    // If selecting end point and start point exists, center on start point
+    if (selectionType === 'end' && startCoordinate) {
+      return startCoordinate;
+    }
+    
+    // If selecting start point and end point exists, center on end point
+    if (selectionType === 'start' && endCoordinate) {
+      return endCoordinate;
+    }
+    
+    // If both points exist, center between them
+    if (startCoordinate && endCoordinate) {
+      return {
+        lat: (startCoordinate.lat + endCoordinate.lat) / 2,
+        lng: (startCoordinate.lng + endCoordinate.lng) / 2
+      };
+    }
+    
+    // If one point exists, center on it
+    if (startCoordinate) return startCoordinate;
+    if (endCoordinate) return endCoordinate;
+    
+    // Default to Switzerland center
+    return { lat: 46.8182, lng: 8.2275 };
   };
 
   const hasStartPoint = startCoordinate || (startLat && startLng);
@@ -316,6 +346,7 @@ export function EnhancedRouteInputForm({ onRouteSubmit, loading = false }: Enhan
               selectionMode={selectionType}
               loading={loading}
               height="h-96"
+              center={getMapCenter()}
             />
           </div>
         )}
