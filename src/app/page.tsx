@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { Header } from '@/components/layouts/header';
-import { RouteInputForm } from '@/components/forms/route-input-form';
+import { EnhancedRouteInputForm } from '@/components/forms/enhanced-route-input-form';
 import { ElevationChart } from '@/components/ui/elevation-chart';
 import { RouteMap } from '@/components/ui/route-map';
 import { RouteSummaryCard } from '@/components/ui/semantic/route-summary-card';
@@ -175,7 +175,7 @@ export default function Home() {
             </p>
           </div>
 
-          <RouteInputForm onRouteSubmit={handleRouteSubmit} loading={loading} />
+          <EnhancedRouteInputForm onRouteSubmit={handleRouteSubmit} loading={loading} />
 
           <PathfindingControls 
             options={pathfindingOptions}

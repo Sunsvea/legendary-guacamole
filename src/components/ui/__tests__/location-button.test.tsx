@@ -32,7 +32,7 @@ describe('LocationButton', () => {
     expect(screen.getByText(/use current location/i)).toBeInTheDocument();
   });
 
-  it('should be disabled when geolocation is not supported', () => {
+  it('should be disabled when geolocation is not supported', async () => {
     mockIsGeolocationSupported.mockReturnValue(false);
     
     render(
@@ -43,8 +43,11 @@ describe('LocationButton', () => {
     );
 
     const button = screen.getByLabelText(/use current location/i);
-    expect(button).toBeDisabled();
-    expect(screen.getByText(/not supported/i)).toBeInTheDocument();
+    expect(button).toBeDisabled(); // Initially disabled due to client check
+    
+    await waitFor(() => {
+      expect(screen.getByText(/not supported/i)).toBeInTheDocument();
+    });
   });
 
   it('should call onLocationSelect when location is successfully retrieved', async () => {
@@ -115,7 +118,7 @@ describe('LocationButton', () => {
   });
 
   it('should show loading state while getting location', async () => {
-    let resolveLocation: (value: any) => void;
+    let resolveLocation: (value: unknown) => void;
     const locationPromise = new Promise((resolve) => {
       resolveLocation = resolve;
     });

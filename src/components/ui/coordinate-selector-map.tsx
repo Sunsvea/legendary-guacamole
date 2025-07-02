@@ -7,9 +7,8 @@
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { Coordinate } from '@/types/route';
-import { MAPBOX_CONFIG } from '@/lib/mapbox-config';
+import { MAPBOX_ACCESS_TOKEN } from '@/lib/mapbox-config';
 import { MapPin, Navigation } from 'lucide-react';
-import { STYLES } from '@/constants/styles';
 
 interface CoordinateSelectorMapProps {
   onCoordinateSelect: (coordinate: Coordinate, type: 'start' | 'end') => void;
@@ -42,11 +41,11 @@ export function CoordinateSelectorMap({
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    mapboxgl.accessToken = MAPBOX_CONFIG.accessToken;
+    mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: MAPBOX_CONFIG.style,
+      style: 'mapbox://styles/mapbox/outdoors-v12',
       center: [center.lng, center.lat],
       zoom: 8,
       attributionControl: false
@@ -87,7 +86,7 @@ export function CoordinateSelectorMap({
         map.current = null;
       }
     };
-  }, []);
+  }, [center.lat, center.lng, loading, onCoordinateSelect, selectionMode]);
 
   // Update cursor based on selection mode
   useEffect(() => {

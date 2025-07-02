@@ -7,7 +7,7 @@ import { EnhancedRouteInputForm } from '../enhanced-route-input-form';
 
 // Mock the components we depend on
 jest.mock('@/components/ui/location-button', () => ({
-  LocationButton: jest.fn(({ onLocationSelect, onError }) => (
+  LocationButton: jest.fn(({ onLocationSelect }) => (
     <button
       data-testid="location-button"
       onClick={() => onLocationSelect({ lat: 46.5197, lng: 6.6323 })}

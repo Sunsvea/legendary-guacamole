@@ -2,7 +2,7 @@
  * Tests for coordinate selector map component
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { CoordinateSelectorMap } from '../coordinate-selector-map';
 
 // Mock mapbox-gl
@@ -48,9 +48,9 @@ jest.mock('@/lib/mapbox-config', () => ({
 
 // Mock next/dynamic
 jest.mock('next/dynamic', () => {
-  return function dynamic(importFunc: () => Promise<any>) {
-    const Component = (props: any) => {
-      return <div data-testid="coordinate-selector-map" {...props} />;
+  return function dynamic() {
+    const Component = (props: unknown) => {
+      return <div data-testid="coordinate-selector-map" {...(props as object)} />;
     };
     Component.displayName = 'CoordinateSelectorMap';
     return Component;

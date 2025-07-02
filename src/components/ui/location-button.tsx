@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
 import { Coordinate } from '@/types/route';
 import { getCurrentLocation, isGeolocationSupported } from '@/lib/utils/geolocation';
@@ -24,9 +24,15 @@ export function LocationButton({
   className = '' 
 }: LocationButtonProps) {
   const [gettingLocation, setGettingLocation] = useState(false);
+  const [isSupported, setIsSupported] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   
-  const isSupported = isGeolocationSupported();
-  const isDisabled = loading || gettingLocation || !isSupported;
+  useEffect(() => {
+    setIsClient(true);
+    setIsSupported(isGeolocationSupported());
+  }, []);
+  
+  const isDisabled = loading || gettingLocation || !isSupported || !isClient;
 
   const handleGetLocation = async () => {
     setGettingLocation(true);
@@ -39,7 +45,7 @@ export function LocationButton({
       } else if (result.error) {
         onError(result.error);
       }
-    } catch (error) {
+    } catch {
       onError({
         message: 'An unexpected error occurred while getting location.',
         code: 'UNEXPECTED_ERROR'
@@ -50,6 +56,7 @@ export function LocationButton({
   };
 
   const getButtonText = () => {
+    if (!isClient) return 'Use Current Location';
     if (!isSupported) return 'Not Supported';
     if (gettingLocation) return 'Getting Location...';
     return 'Use Current Location';
