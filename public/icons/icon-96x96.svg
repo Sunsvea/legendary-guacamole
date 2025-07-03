@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96">
+  <defs>
+    <linearGradient id="mountainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="48" cy="48" r="44" fill="url(#mountainGradient)" stroke="#1e3a8a" stroke-width="4"/>
+  
+  <!-- Mountain peaks -->
+  <path d="M14.399999999999999 62.400000000000006 L28.799999999999997 33.599999999999994 L43.2 48 L57.599999999999994 24 L72 43.2 L81.6 62.400000000000006 Z" fill="#ffffff" opacity="0.9"/>
+  
+  <!-- Route line -->
+  <path d="M19.200000000000003 67.19999999999999 Q33.599999999999994 43.2 48 52.800000000000004 T76.80000000000001 38.400000000000006" fill="none" stroke="#fbbf24" stroke-width="2.4" stroke-linecap="round" opacity="0.8"/>
+  <circle cx="19.200000000000003" cy="67.19999999999999" r="1.92" fill="#fbbf24"/>
+  <circle cx="76.80000000000001" cy="38.400000000000006" r="1.92" fill="#fbbf24"/>
+  
+  <!-- Waypoint -->
+  <circle cx="48" cy="52.800000000000004" r="1.3714285714285714" fill="#fbbf24" opacity="0.6"/>
+</svg>
