@@ -1,8 +1,5 @@
 // Color constants for consistent theming
 export const COLORS = {
-  // Primary brand colors
-  PRIMARY_BLUE: '#3b82f6',
-  
   // Elevation colors
   ELEVATION: {
     LOW: '#22c55e',
@@ -27,13 +24,5 @@ export const COLORS = {
     RED: 'text-red-600',
     ORANGE: 'text-orange-600',
     PURPLE: 'text-purple-600',
-  },
-  
-  // Background colors (Tailwind classes)
-  BG: {
-    WHITE: 'bg-white',
-    GRAY_50: 'bg-gray-50',
-    GRAY_100: 'bg-gray-100',
-    BLUE_50: 'bg-blue-50',
   },
 } as const;

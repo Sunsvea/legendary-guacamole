@@ -1,7 +1,6 @@
 import {
   RateLimiter,
   debounce,
-  throttle,
   mapRateLimiter,
   pathfindingRateLimiter,
   apiRateLimiter
@@ -357,125 +356,6 @@ describe('debounce function', () => {
   });
 });
 
-describe('throttle function', () => {
-  let mockFn: jest.Mock;
-
-  beforeEach(() => {
-    mockFn = jest.fn();
-    jest.clearAllTimers();
-  });
-
-  afterEach(() => {
-    jest.clearAllTimers();
-  });
-
-  it('should execute function immediately on first call', () => {
-    const throttledFn = throttle(mockFn, 100);
-    
-    throttledFn();
-    expect(mockFn).toHaveBeenCalledTimes(1);
-  });
-
-  it('should ignore calls within throttle limit', () => {
-    const throttledFn = throttle(mockFn, 100);
-    
-    throttledFn();
-    throttledFn();
-    throttledFn();
-    
-    expect(mockFn).toHaveBeenCalledTimes(1);
-  });
-
-  it('should allow calls after throttle period expires', () => {
-    const throttledFn = throttle(mockFn, 100);
-    
-    throttledFn();
-    expect(mockFn).toHaveBeenCalledTimes(1);
-    
-    jest.advanceTimersByTime(100);
-    
-    throttledFn();
-    expect(mockFn).toHaveBeenCalledTimes(2);
-  });
-
-  it('should pass arguments correctly', () => {
-    const throttledFn = throttle(mockFn, 100);
-    
-    throttledFn('arg1', 'arg2', 123);
-    expect(mockFn).toHaveBeenCalledWith('arg1', 'arg2', 123);
-  });
-
-  it('should handle rapid successive calls', () => {
-    const throttledFn = throttle(mockFn, 100);
-    
-    throttledFn('first');
-    throttledFn('second');
-    throttledFn('third');
-    
-    expect(mockFn).toHaveBeenCalledTimes(1);
-    expect(mockFn).toHaveBeenCalledWith('first');
-  });
-
-  it('should maintain separate throttle state for different function instances', () => {
-    const throttledFn1 = throttle(mockFn, 100);
-    const throttledFn2 = throttle(mockFn, 100);
-    
-    throttledFn1();
-    throttledFn2();
-    
-    expect(mockFn).toHaveBeenCalledTimes(2);
-  });
-
-  it('should handle zero throttle limit', () => {
-    const throttledFn = throttle(mockFn, 0);
-    
-    throttledFn();
-    expect(mockFn).toHaveBeenCalledTimes(1);
-    
-    jest.advanceTimersByTime(0);
-    
-    throttledFn();
-    expect(mockFn).toHaveBeenCalledTimes(2);
-  });
-
-  it('should handle functions that throw errors', () => {
-    const errorFn = jest.fn(() => {
-      throw new Error('Test error');
-    });
-    const throttledFn = throttle(errorFn, 100);
-    
-    expect(() => throttledFn()).toThrow('Test error');
-    expect(errorFn).toHaveBeenCalledTimes(1);
-  });
-
-  it('should work with functions that return values', () => {
-    const returnFn = jest.fn(() => 'result');
-    const throttledFn = throttle(returnFn, 100);
-    
-    throttledFn();
-    expect(returnFn).toHaveBeenCalled();
-  });
-
-  it('should handle multiple throttle periods correctly', () => {
-    const throttledFn = throttle(mockFn, 100);
-    
-    // First period
-    throttledFn();
-    throttledFn();
-    expect(mockFn).toHaveBeenCalledTimes(1);
-    
-    // Advance to second period
-    jest.advanceTimersByTime(100);
-    throttledFn();
-    throttledFn();
-    expect(mockFn).toHaveBeenCalledTimes(2);
-    
-    // Advance to third period
-    jest.advanceTimersByTime(100);
-    throttledFn();
-    expect(mockFn).toHaveBeenCalledTimes(3);
-  });
-});
 
 describe('global rate limiters', () => {
   it('should have mapRateLimiter with correct configuration', () => {

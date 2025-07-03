@@ -3,12 +3,10 @@ import { COLORS } from '../colors';
 describe('COLORS', () => {
   describe('structure and organization', () => {
     it('should have main color categories', () => {
-      expect(COLORS).toHaveProperty('PRIMARY_BLUE');
       expect(COLORS).toHaveProperty('ELEVATION');
       expect(COLORS).toHaveProperty('START_POINT');
       expect(COLORS).toHaveProperty('END_POINT');
       expect(COLORS).toHaveProperty('TEXT');
-      expect(COLORS).toHaveProperty('BG');
     });
 
     it('should have nested elevation colors', () => {
@@ -28,17 +26,10 @@ describe('COLORS', () => {
       expect(COLORS.TEXT).toHaveProperty('RED');
     });
 
-    it('should have background color categories', () => {
-      expect(COLORS.BG).toHaveProperty('WHITE');
-      expect(COLORS.BG).toHaveProperty('GRAY_50');
-      expect(COLORS.BG).toHaveProperty('GRAY_100');
-      expect(COLORS.BG).toHaveProperty('BLUE_50');
-    });
   });
 
   describe('color format validation', () => {
     it('should have valid hex color format for direct colors', () => {
-      expect(COLORS.PRIMARY_BLUE).toMatch(/^#[0-9a-f]{6}$/i);
       expect(COLORS.START_POINT).toMatch(/^#[0-9a-f]{6}$/i);
       expect(COLORS.END_POINT).toMatch(/^#[0-9a-f]{6}$/i);
       expect(COLORS.WAYPOINT).toMatch(/^#[0-9a-f]{6}$/i);
@@ -56,11 +47,6 @@ describe('COLORS', () => {
       });
     });
 
-    it('should have valid Tailwind class format for background colors', () => {
-      Object.values(COLORS.BG).forEach(className => {
-        expect(className).toMatch(/^bg-[\w-]+$/);
-      });
-    });
   });
 
   describe('color accessibility and contrast', () => {
@@ -101,12 +87,6 @@ describe('COLORS', () => {
       expect(COLORS.TEXT.ORANGE).toBe('text-orange-600');
     });
 
-    it('should use consistent background color palette', () => {
-      expect(COLORS.BG.WHITE).toBe('bg-white');
-      expect(COLORS.BG.GRAY_50).toBe('bg-gray-50');
-      expect(COLORS.BG.GRAY_100).toBe('bg-gray-100');
-      expect(COLORS.BG.BLUE_50).toBe('bg-blue-50');
-    });
   });
 
   describe('elevation color progression', () => {
