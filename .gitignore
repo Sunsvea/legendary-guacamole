@@ -42,3 +42,5 @@ next-env.d.ts
 
 # project docs
 CLAUDE.md
+DEVELOPMENT_TODO_LIST.md
+SUPABASE_TODO.md
