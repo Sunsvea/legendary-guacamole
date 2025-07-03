@@ -11,25 +11,34 @@ const mockGeolocation = {
   clearWatch: jest.fn()
 };
 
-// Store original navigator.geolocation
-const originalGeolocation = global.navigator?.geolocation;
+// Store original navigator
+const originalNavigator = global.navigator;
 
 describe('geolocation utilities', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset geolocation mock
+    // Ensure navigator exists and mock geolocation
+    if (!global.navigator) {
+      Object.defineProperty(global, 'navigator', {
+        value: {},
+        configurable: true,
+        writable: true
+      });
+    }
     Object.defineProperty(global.navigator, 'geolocation', {
       value: mockGeolocation,
-      configurable: true
+      configurable: true,
+      writable: true
     });
   });
 
   afterAll(() => {
-    // Restore original geolocation
-    if (originalGeolocation) {
-      Object.defineProperty(global.navigator, 'geolocation', {
-        value: originalGeolocation,
-        configurable: true
+    // Restore original navigator
+    if (originalNavigator) {
+      Object.defineProperty(global, 'navigator', {
+        value: originalNavigator,
+        configurable: true,
+        writable: true
       });
     }
   });
