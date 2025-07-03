@@ -13,7 +13,6 @@ Experience the app at: **[https://legendary-guacamole-dusky.vercel.app](https://
 |<img width="400" alt="image" src="https://github.com/user-attachments/assets/a81c8929-be33-45d7-8087-48a6698854a7" />   |<img width="400" alt="image" src="https://github.com/user-attachments/assets/0f1a28e1-0f45-40f4-8b03-80f1a5ccdad5" />   |   
 |---|---|
 |<img width="400" alt="image" src="https://github.com/user-attachments/assets/1aa2dc4f-ec2e-43a6-9f5d-24ca2db06277" />   |<img width="400" alt="image" src="https://github.com/user-attachments/assets/e4abd247-8f95-475c-924a-dfd1678231ac" />   |   
-|   |   |   |   |   |
 
 ## Features
 
