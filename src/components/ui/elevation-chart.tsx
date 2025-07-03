@@ -16,7 +16,6 @@ export function ElevationChart({ points, className = '' }: ElevationChartProps) 
     return null;
   }
 
-
   const maxElevation = Math.max(...points.map(p => p.elevation));
   const minElevation = Math.min(...points.map(p => p.elevation));
   const elevationRange = maxElevation - minElevation || 1;

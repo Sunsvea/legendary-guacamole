@@ -156,7 +156,6 @@ describe('findOptimalRoute', () => {
 
       const result = await findOptimalRoute(startCoord, endCoord);
 
-      expect(console.warn).toHaveBeenCalledWith('⚠️ Elevation fetch failed for direct path, using trail graph fallback');
       expect(result).toBeDefined();
     });
   });

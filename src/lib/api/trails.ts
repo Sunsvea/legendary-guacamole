@@ -143,23 +143,18 @@ export function parseTrailDifficulty(tags: Record<string, string>): 'easy' | 'mo
  * Fetch trail data from OpenStreetMap using Overpass API
  */
 export async function fetchTrailData(start: Coordinate, end: Coordinate): Promise<TrailNetwork> {
-  const fetchStart = performance.now();
   const bbox = calculateBoundingBox(start, end);
   const cacheKey = getCacheKey(bbox);
   
   // Check cache first
   const cached = trailCache.get(cacheKey);
   if (cached && isCacheValid(cached)) {
-    const cacheTime = performance.now() - fetchStart;
     return cached;
   }
   
   try {
-    const queryStart = performance.now();
     const query = buildOverpassQuery(bbox);
-    const queryTime = performance.now() - queryStart;
     
-    const networkStart = performance.now();
     const response = await fetch('https://overpass-api.de/api/interpreter', {
       method: 'POST',
       headers: {
@@ -167,17 +162,13 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
       },
       body: `data=${encodeURIComponent(query)}`,
     });
-    const networkTime = performance.now() - networkStart;
     
     if (!response.ok) {
       throw new Error(`Overpass API error: ${response.status}`);
     }
     
-    const parseStart = performance.now();
     const data = await response.json();
-    const parseTime = performance.now() - parseStart;
     
-    const processStart = performance.now();
     const trails: TrailSegment[] = [];
     
     // Process OSM ways into trail segments
@@ -223,12 +214,9 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
         }
       }
     }
-    const processTime = performance.now() - processStart;
     
     // Build spatial index for faster lookups
-    const indexStart = performance.now();
     const spatialIndex = buildSpatialIndex(trails, bbox);
-    const indexTime = performance.now() - indexStart;
     
     const network: TrailNetwork = {
       trails,
@@ -240,12 +228,10 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
     // Cache the result
     trailCache.set(cacheKey, network);
     
-    const totalTime = performance.now() - fetchStart;
     return network;
     
   } catch (error) {
-    const errorTime = performance.now() - fetchStart;
-    console.error(`❌ Error fetching trail data after ${errorTime.toFixed(2)}ms:`, error);
+    console.error('❌ Error fetching trail data:', error);
     
     // Return empty network on error
     return {

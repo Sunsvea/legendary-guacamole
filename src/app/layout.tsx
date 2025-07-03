@@ -66,7 +66,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <script src="/suppress-warnings.js"></script>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />

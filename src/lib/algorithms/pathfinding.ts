@@ -21,16 +21,13 @@ export async function findOptimalRoute(
   end: Coordinate,
   options: PathfindingOptions = DEFAULT_PATHFINDING_OPTIONS
 ): Promise<RoutePoint[]> {
-  const startTime = performance.now();
   try {
 
     // Fetch both elevation and trail data in parallel
-    const dataFetchStart = performance.now();
     const [elevationPoints, trailNetwork] = await Promise.all([
       getElevationForRoute(start, end, 0.005),
       fetchTrailData(start, end)
     ]);
-    const dataFetchTime = performance.now() - dataFetchStart;
 
     // TRY DIRECT TRAIL PATH FIRST - for linear routes like parks
     const directPath = findDirectTrailPath(start, end, trailNetwork.trails);
@@ -44,7 +41,6 @@ export async function findOptimalRoute(
           elevation: elevations[index] || 0,
         }));
 
-        const totalTime = performance.now() - startTime;
         return routePoints;
       } catch {
       }
@@ -54,7 +50,6 @@ export async function findOptimalRoute(
       throw new Error('Failed to get elevation data');
     }
 
-    const pathfindingStart = performance.now();
     const startWithElevation = elevationPoints[0];
     const endWithElevation = elevationPoints[elevationPoints.length - 1];
 
@@ -80,19 +75,13 @@ export async function findOptimalRoute(
       if (!current) break;
 
       if (calculateDistance(current.coordinate, endWithElevation) < PATHFINDING_CONSTANTS.GOAL_DISTANCE_THRESHOLD) {
-        const pathfindingTime = performance.now() - pathfindingStart;
-        const reconstructStart = performance.now();
         const result = reconstructPath(current);
-        const reconstructTime = performance.now() - reconstructStart;
-        const totalTime = performance.now() - startTime;
         return result;
       }
 
       closedSet.push(current.coordinate);
 
-      const neighborsStart = performance.now();
       const neighbors = generateNeighbors(current.coordinate, elevationPoints);
-      const neighborsTime = performance.now() - neighborsStart;
 
 
       for (const neighbor of neighbors) {
@@ -112,9 +101,7 @@ export async function findOptimalRoute(
           neighbor.elevation = elevationPoint.elevation;
         }
 
-        const costStart = performance.now();
         const gCost = current.gCost + calculateMovementCost(current.coordinate, neighbor, trailNetwork, options);
-        const costTime = performance.now() - costStart;
 
 
         const hCost = calculateHeuristic(neighbor, endWithElevation);
@@ -133,12 +120,8 @@ export async function findOptimalRoute(
       }
     }
 
-    const pathfindingTime = performance.now() - pathfindingStart;
-
     // ALWAYS use trail optimization for fallback routes
-    const fallbackStart = performance.now();
     const result = await optimizeRouteWithTrails(elevationPoints, trailNetwork.trails, options);
-    const fallbackTime = performance.now() - fallbackStart;
     return result;
 
   } catch (error) {

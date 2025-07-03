@@ -57,7 +57,7 @@ export function InstallPrompt() {
 
     try {
       await deferredPrompt.prompt();
-      const choiceResult = await deferredPrompt.userChoice;
+      await deferredPrompt.userChoice;
       
       // Install prompt choice handled
       

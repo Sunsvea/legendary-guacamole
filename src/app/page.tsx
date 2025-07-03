@@ -10,7 +10,6 @@ import { PathfindingControls } from '@/components/ui/pathfinding-controls';
 import { AuthModal } from '@/components/auth/auth-modal';
 import { Coordinate, Route } from '@/types/route';
 import { PathfindingOptions, DEFAULT_PATHFINDING_OPTIONS } from '@/types/pathfinding';
-import { DatabaseRoute } from '@/types/database';
 import { findOptimalRoute } from '@/lib/algorithms/pathfinding';
 import { calculateDistance, calculateElevationGain } from '@/lib/utils';
 import { debounce, pathfindingRateLimiter } from '@/lib/utils/rate-limiter';
@@ -34,7 +33,6 @@ export default function Home() {
 
     setLoading(true);
     try {
-      
       const routePoints = await findOptimalRoute(start, end, pathfindingOptions);
       
       if (routePoints.length === 0) {
@@ -112,7 +110,7 @@ export default function Home() {
   /**
    * Handle successful route save
    */
-  const handleSaveSuccess = useCallback((savedRoute: DatabaseRoute) => {
+  const handleSaveSuccess = useCallback(() => {
     // Show success feedback with native browser notification
     alert(UI_TEXT.SAVE_SUCCESS);
   }, []);

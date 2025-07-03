@@ -350,9 +350,6 @@ describe('trails API', () => {
       const result = await fetchTrailData(uniqueStart, uniqueEnd);
 
       expect(result.trails.length).toBeLessThanOrEqual(5000);
-      expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('⚠️ Trail limit reached')
-      );
     });
 
     it('should build spatial index correctly', async () => {
@@ -1316,9 +1313,6 @@ describe('trails API', () => {
       const result = await fetchTrailData(uniqueCoords, { lat: 62.0100, lng: 23.0100 });
 
       expect(result.trails.length).toBeLessThanOrEqual(5000);
-      expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('⚠️ Trail limit reached')
-      );
     });
 
     it('should handle waterway and road classification correctly', async () => {

@@ -141,7 +141,6 @@ export function createSimpleTrailRoute(start: Coordinate, end: Coordinate, trail
     // Find best trail near this waypoint
     let bestSnap: Coordinate | null = null;
     let bestDistance = Infinity;
-    let bestIsTrail = false;
     
     for (const trail of trails) {
       if (trail.isWater) continue; // Skip water
@@ -159,7 +158,6 @@ export function createSimpleTrailRoute(start: Coordinate, end: Coordinate, trail
           if (adjustedDistance < bestDistance) {
             bestDistance = adjustedDistance;
             bestSnap = coord;
-            bestIsTrail = isTrail;
           }
         }
       }

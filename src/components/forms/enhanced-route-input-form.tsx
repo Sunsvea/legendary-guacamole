@@ -40,8 +40,6 @@ const EXAMPLE_ROUTES = [
 
 export function EnhancedRouteInputForm({ onRouteSubmit, loading = false }: EnhancedRouteInputFormProps) {
   const [selectionType, setSelectionType] = useState<SelectionType>('start');
-  
-  
   const [startCoordinate, setStartCoordinate] = useState<Coordinate | undefined>();
   const [endCoordinate, setEndCoordinate] = useState<Coordinate | undefined>();
   
@@ -85,8 +83,6 @@ export function EnhancedRouteInputForm({ onRouteSubmit, loading = false }: Enhan
   const handleEndSelection = () => {
     setSelectionType('end');
   };
-
-
 
   const hasStartPoint = !!startCoordinate;
   const hasEndPoint = !!endCoordinate;
