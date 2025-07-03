@@ -23,7 +23,6 @@ export async function findOptimalRoute(
 ): Promise<RoutePoint[]> {
   const startTime = performance.now();
   try {
-    console.log('🚀 Starting pathfinding from', start, 'to', end);
 
     // Fetch both elevation and trail data in parallel
     const dataFetchStart = performance.now();
@@ -32,13 +31,10 @@ export async function findOptimalRoute(
       fetchTrailData(start, end)
     ]);
     const dataFetchTime = performance.now() - dataFetchStart;
-    console.log(`⏱️ Data fetch took ${dataFetchTime.toFixed(2)}ms`);
-    console.log(`📍 Found ${elevationPoints.length} elevation points, ${trailNetwork.trails.length} trails in area`);
 
     // TRY DIRECT TRAIL PATH FIRST - for linear routes like parks
     const directPath = findDirectTrailPath(start, end, trailNetwork.trails);
     if (directPath && directPath.length > 2) {
-      console.log(`🎯 Using direct trail path with ${directPath.length} waypoints`);
 
       // Add elevation data to the direct path
       try {
@@ -49,10 +45,8 @@ export async function findOptimalRoute(
         }));
 
         const totalTime = performance.now() - startTime;
-        console.log(`🏁 Direct path completed in ${totalTime.toFixed(2)}ms`);
         return routePoints;
       } catch {
-        console.warn('⚠️ Elevation fetch failed for direct path, using trail graph fallback');
       }
     }
 
@@ -87,13 +81,10 @@ export async function findOptimalRoute(
 
       if (calculateDistance(current.coordinate, endWithElevation) < PATHFINDING_CONSTANTS.GOAL_DISTANCE_THRESHOLD) {
         const pathfindingTime = performance.now() - pathfindingStart;
-        console.log(`✅ Path found in ${iterations} iterations (${pathfindingTime.toFixed(2)}ms)`);
         const reconstructStart = performance.now();
         const result = reconstructPath(current);
         const reconstructTime = performance.now() - reconstructStart;
-        console.log(`🔄 Path reconstruction took ${reconstructTime.toFixed(2)}ms`);
         const totalTime = performance.now() - startTime;
-        console.log(`🏁 Total pathfinding time: ${totalTime.toFixed(2)}ms`);
         return result;
       }
 
@@ -103,9 +94,6 @@ export async function findOptimalRoute(
       const neighbors = generateNeighbors(current.coordinate, elevationPoints);
       const neighborsTime = performance.now() - neighborsStart;
 
-      if (iterations % 100 === 0) {
-        console.log(`⏳ Iteration ${iterations}, neighbors generation: ${neighborsTime.toFixed(2)}ms`);
-      }
 
       for (const neighbor of neighbors) {
         if (closedSet.some(coord =>
@@ -128,9 +116,6 @@ export async function findOptimalRoute(
         const gCost = current.gCost + calculateMovementCost(current.coordinate, neighbor, trailNetwork, options);
         const costTime = performance.now() - costStart;
 
-        if (iterations % 100 === 0 && costTime > 1) {
-          console.log(`💰 Cost calculation took ${costTime.toFixed(2)}ms for iteration ${iterations}`);
-        }
 
         const hCost = calculateHeuristic(neighbor, endWithElevation);
 
@@ -149,23 +134,17 @@ export async function findOptimalRoute(
     }
 
     const pathfindingTime = performance.now() - pathfindingStart;
-    console.log(`❌ Pathfinding completed with ${iterations} iterations (${pathfindingTime.toFixed(2)}ms), using fallback route`);
 
     // ALWAYS use trail optimization for fallback routes
     const fallbackStart = performance.now();
-    console.log('🔄 Using trail-optimized fallback route');
     const result = await optimizeRouteWithTrails(elevationPoints, trailNetwork.trails, options);
     const fallbackTime = performance.now() - fallbackStart;
-    console.log(`🔄 Trail optimization took ${fallbackTime.toFixed(2)}ms`);
-    const totalTime = performance.now() - startTime;
-    console.log(`🏁 Total time (with fallback): ${totalTime.toFixed(2)}ms`);
     return result;
 
   } catch (error) {
     console.error('Error in pathfinding:', error);
 
     // Even on error, try to use trail data
-    console.log('Error fallback: attempting trail optimization');
     const fallbackPoints = await getElevationForRoute(start, end, 0.01);
 
     try {

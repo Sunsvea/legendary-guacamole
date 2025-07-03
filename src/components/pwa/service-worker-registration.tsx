@@ -37,7 +37,6 @@ export function ServiceWorkerRegistration() {
         updateViaCache: 'none'
       });
 
-      console.log('[PWA] Service Worker registered successfully:', registration);
 
       // Check for updates
       registration.addEventListener('updatefound', () => {
@@ -47,14 +46,12 @@ export function ServiceWorkerRegistration() {
             if (newWorker.state === 'installed') {
               if (navigator.serviceWorker.controller) {
                 setSwState(prev => ({ ...prev, updateAvailable: true }));
-                console.log('[PWA] New service worker available');
               } else {
                 setSwState(prev => ({ 
                   ...prev, 
                   isInstalled: true, 
                   isInstalling: false 
                 }));
-                console.log('[PWA] Service worker installed for the first time');
               }
             }
           });
@@ -73,7 +70,7 @@ export function ServiceWorkerRegistration() {
       // Listen for messages from service worker
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data?.type === 'CACHE_UPDATED') {
-          console.log('[PWA] Cache updated:', event.data.payload);
+          // Cache update notification received
         }
       });
 

@@ -62,7 +62,6 @@ export function isObviousLinearRoute(start: Coordinate, end: Coordinate, trails:
   const trailDensity = trailPointsOnLine / checkPoints;
   const isLinearParkRoute = trailDensity >= 0.6; // 60% of route has trails nearby
   
-  console.log(`🔍 Linear route analysis: distance=${distance.toFixed(2)}km, trail density=${(trailDensity*100).toFixed(0)}%, linear=${isLinearParkRoute}`);
   
   return isLinearParkRoute;
 }
@@ -71,7 +70,6 @@ export function isObviousLinearRoute(start: Coordinate, end: Coordinate, trails:
  * FORCE LINEAR ROUTE: Create a direct trail-following path
  */
 export function createForcedLinearRoute(start: Coordinate, end: Coordinate, trails: TrailSegment[]): Coordinate[] {
-  console.log(`📍 FORCING linear route - direct trail path`);
   
   const waypoints = 25; // High density for smooth path
   const path: Coordinate[] = [];
@@ -108,7 +106,6 @@ export function createForcedLinearRoute(start: Coordinate, end: Coordinate, trai
     }
   }
   
-  console.log(`⚡ Forced linear route: ${path.length} waypoints, aggressive trail following`);
   return path;
 }
 
@@ -117,17 +114,14 @@ export function createForcedLinearRoute(start: Coordinate, end: Coordinate, trai
  * This replaces the complex trail graph system with a direct sampling approach
  */
 export function createSimpleTrailRoute(start: Coordinate, end: Coordinate, trails: TrailSegment[], options: PathfindingOptions = DEFAULT_PATHFINDING_OPTIONS): Coordinate[] {
-  console.log(`🔄 Using simplified trail algorithm with ${trails.length} trails`);
   
   // ROADS ONLY MODE: Filter to only roads if requested
   if (options.roadsOnly) {
     const roadTrails = trails.filter(t => t.isRoad && !t.isWater);
-    console.log(`🛣️ ROADS ONLY MODE: Using ${roadTrails.length} roads only`);
     trails = roadTrails;
   } else {
     // EMERGENCY LINEAR OVERRIDE: Check if this should be forced linear (only when not roads-only)
     if (isObviousLinearRoute(start, end, trails)) {
-      console.log(`⚡ EMERGENCY OVERRIDE: Detected obvious linear route, forcing direct path`);
       return createForcedLinearRoute(start, end, trails);
     }
   }
@@ -174,15 +168,12 @@ export function createSimpleTrailRoute(start: Coordinate, end: Coordinate, trail
     // Use snapped point if found, otherwise use direct waypoint
     if (bestSnap) {
       path.push(bestSnap);
-      console.log(`📍 Waypoint ${i}: snapped to ${bestIsTrail ? 'trail' : 'road'} (${(bestDistance*1000).toFixed(0)}m)`);
     } else {
       path.push(waypoint);
-      console.log(`📍 Waypoint ${i}: direct route (no trails within ${snapDistance*1000}m)`);
     }
   }
   
   path.push(end);
-  console.log(`🛤️ Simple trail route created with ${path.length} waypoints`);
   return path;
 }
 
@@ -219,7 +210,6 @@ export function interpolateWaypoints(waypoints: Coordinate[], targetDistance: nu
     interpolatedWaypoints.push(to);
   }
   
-  console.log(`🔗 Interpolated ${waypoints.length} waypoints to ${interpolatedWaypoints.length} waypoints`);
   return interpolatedWaypoints;
 }
 
@@ -230,10 +220,8 @@ export function createSimpleTrailGuidedWaypoints(start: Coordinate, end: Coordin
   // Filter usable trails (no water)
   const usableTrails = trails.filter(t => !t.isWater);
   
-  console.log(`🗺️ Simplified routing with ${usableTrails.length} usable trails`);
   
   if (usableTrails.length === 0) {
-    console.log(`❌ No usable trails found, using direct route`);
     return [start, end];
   }
   
@@ -245,7 +233,6 @@ export function createSimpleTrailGuidedWaypoints(start: Coordinate, end: Coordin
   
   // Limit to maxWaypoints if specified
   if (interpolatedWaypoints.length > options.maxWaypoints) {
-    console.log(`🔢 Limiting ${interpolatedWaypoints.length} waypoints to ${options.maxWaypoints} max`);
     const step = interpolatedWaypoints.length / options.maxWaypoints;
     const limitedWaypoints = [];
     for (let i = 0; i < options.maxWaypoints; i++) {
@@ -281,7 +268,6 @@ export function findDirectTrailPath(start: Coordinate, end: Coordinate, trails: 
     )
   );
   
-  console.log(`🔍 Enhanced path check: ${startTrails.length} start trails, ${endTrails.length} end trails`);
   
   // First try: direct common trails
   const commonTrails = startTrails.filter(startTrail => 
@@ -289,7 +275,6 @@ export function findDirectTrailPath(start: Coordinate, end: Coordinate, trails: 
   );
   
   if (commonTrails.length > 0) {
-    console.log(`✅ Found ${commonTrails.length} direct common trails`);
     const bestTrail = commonTrails.reduce((longest, trail) => 
       trail.coordinates.length > longest.coordinates.length ? trail : longest
     );
@@ -298,27 +283,23 @@ export function findDirectTrailPath(start: Coordinate, end: Coordinate, trails: 
   }
   
   // Second try: Chain connected trail segments for linear paths
-  console.log(`🔗 Attempting trail chaining for linear path...`);
   
   // Check if this looks like a linear route (start and end roughly aligned)
   const directDistance = calculateDistance(start, end);
   const bearing = calculateBearing(start, end);
   
   if (directDistance > 2.0) { // Only for routes > 2km
-    console.log(`📏 Route too long (${directDistance.toFixed(2)}km) for trail chaining`);
     return null;
   }
   
   // Try to find a chain of trails that connects start to end
   const chainedPath = findTrailChain(start, end, startTrails, endTrails, trails, bearing);
   if (chainedPath && chainedPath.length > 2) {
-    console.log(`🔗 Found chained trail path with ${chainedPath.length} waypoints`);
     return chainedPath;
   }
   
   // Third try: Linear interpolation with trail snapping for obvious linear routes
   if (isLinearRoute(start, end, startTrails, endTrails)) {
-    console.log(`📐 Detected linear route, using trail-snapped interpolation`);
     return createLinearTrailPath(start, end, trails);
   }
   
@@ -359,7 +340,6 @@ export function extractTrailSegment(start: Coordinate, end: Coordinate, trail: T
     pathSegment.reverse();
   }
   
-  console.log(`✂️ Extracted trail segment: ${pathSegment.length} waypoints from index ${minIndex} to ${maxIndex}`);
   return pathSegment;
 }
 
@@ -412,7 +392,6 @@ export function findTrailChain(start: Coordinate, end: Coordinate, startTrails: 
     // Check if we're close enough to end
     const lastPoint = path[path.length - 1];
     if (calculateDistance(lastPoint, end) <= 0.1) {
-      console.log(`🎯 Trail chain reached destination with ${path.length} total waypoints`);
       return path;
     }
     
@@ -477,7 +456,6 @@ export function createLinearTrailPath(start: Coordinate, end: Coordinate, trails
     }
   }
   
-  console.log(`📐 Created linear trail path with ${path.length} waypoints`);
   return path;
 }
 

@@ -118,7 +118,6 @@ export function UserMenu({ onOpenAuthModal }: UserMenuProps) {
               onClick={() => {
                 setIsMenuOpen(false);
                 // TODO: Navigate to dashboard
-                console.log('Navigate to dashboard');
               }}
               className="block w-full text-left px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 transition-colors"
             >
@@ -134,7 +133,6 @@ export function UserMenu({ onOpenAuthModal }: UserMenuProps) {
               onClick={() => {
                 setIsMenuOpen(false);
                 // TODO: Navigate to settings
-                console.log('Navigate to settings');
               }}
               className="block w-full text-left px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 transition-colors"
             >
@@ -151,7 +149,6 @@ export function UserMenu({ onOpenAuthModal }: UserMenuProps) {
               onClick={() => {
                 setIsMenuOpen(false);
                 // TODO: Navigate to public routes
-                console.log('Navigate to public routes');
               }}
               className="block w-full text-left px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 transition-colors"
             >

@@ -16,13 +16,6 @@ export function ElevationChart({ points, className = '' }: ElevationChartProps) 
     return null;
   }
 
-  // Debug elevation data
-  console.log('Elevation Chart Debug:', {
-    totalPoints: points.length,
-    firstElevation: points[0]?.elevation,
-    lastElevation: points[points.length - 1]?.elevation,
-    allElevations: points.map(p => p.elevation).slice(-5) // Last 5 elevations
-  });
 
   const maxElevation = Math.max(...points.map(p => p.elevation));
   const minElevation = Math.min(...points.map(p => p.elevation));

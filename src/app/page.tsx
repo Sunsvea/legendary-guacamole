@@ -34,7 +34,6 @@ export default function Home() {
 
     setLoading(true);
     try {
-      console.log('Planning route from:', start, 'to:', end);
       
       const routePoints = await findOptimalRoute(start, end, pathfindingOptions);
       
@@ -114,7 +113,6 @@ export default function Home() {
    * Handle successful route save
    */
   const handleSaveSuccess = useCallback((savedRoute: DatabaseRoute) => {
-    console.log('Route saved successfully:', savedRoute);
     // Show success feedback with native browser notification
     alert(UI_TEXT.SAVE_SUCCESS);
   }, []);

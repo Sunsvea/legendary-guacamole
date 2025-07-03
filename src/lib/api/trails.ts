@@ -151,7 +151,6 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
   const cached = trailCache.get(cacheKey);
   if (cached && isCacheValid(cached)) {
     const cacheTime = performance.now() - fetchStart;
-    console.log(`🗄️ Using cached trail data (${cacheTime.toFixed(2)}ms)`);
     return cached;
   }
   
@@ -159,7 +158,6 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
     const queryStart = performance.now();
     const query = buildOverpassQuery(bbox);
     const queryTime = performance.now() - queryStart;
-    console.log(`🔍 Built OSM query in ${queryTime.toFixed(2)}ms`);
     
     const networkStart = performance.now();
     const response = await fetch('https://overpass-api.de/api/interpreter', {
@@ -170,7 +168,6 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
       body: `data=${encodeURIComponent(query)}`,
     });
     const networkTime = performance.now() - networkStart;
-    console.log(`🌐 OSM API request took ${networkTime.toFixed(2)}ms`);
     
     if (!response.ok) {
       throw new Error(`Overpass API error: ${response.status}`);
@@ -179,7 +176,6 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
     const parseStart = performance.now();
     const data = await response.json();
     const parseTime = performance.now() - parseStart;
-    console.log(`📝 JSON parsing took ${parseTime.toFixed(2)}ms, found ${data.elements?.length || 0} elements`);
     
     const processStart = performance.now();
     const trails: TrailSegment[] = [];
@@ -223,19 +219,16 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
         
         // Limit trails for performance - prevent browser crashes
         if (trails.length >= 5000) {
-          console.log(`⚠️ Trail limit reached (${trails.length}), stopping processing to prevent browser crash`);
           break;
         }
       }
     }
     const processTime = performance.now() - processStart;
-    console.log(`⚙️ Trail processing took ${processTime.toFixed(2)}ms`);
     
     // Build spatial index for faster lookups
     const indexStart = performance.now();
     const spatialIndex = buildSpatialIndex(trails, bbox);
     const indexTime = performance.now() - indexStart;
-    console.log(`🔍 Built spatial index in ${indexTime.toFixed(2)}ms`);
     
     const network: TrailNetwork = {
       trails,
@@ -248,7 +241,6 @@ export async function fetchTrailData(start: Coordinate, end: Coordinate): Promis
     trailCache.set(cacheKey, network);
     
     const totalTime = performance.now() - fetchStart;
-    console.log(`🗺️ Fetched ${trails.length} trail segments from OSM (total: ${totalTime.toFixed(2)}ms)`);
     return network;
     
   } catch (error) {

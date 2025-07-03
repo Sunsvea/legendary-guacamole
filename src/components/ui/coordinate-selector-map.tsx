@@ -74,7 +74,6 @@ export function CoordinateSelectorMap({
 
     // Simple load handler
     map.current.on('load', () => {
-      console.log('Map loaded successfully');
       setMapLoaded(true);
     });
 

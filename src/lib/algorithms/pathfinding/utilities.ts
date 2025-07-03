@@ -223,7 +223,6 @@ export async function optimizeRouteWithTrails(points: Coordinate[], trails: Trai
   let nonWaterTrails = trails.filter(trail => !trail.isWater);
   if (options.roadsOnly) {
     nonWaterTrails = nonWaterTrails.filter(trail => trail.isRoad);
-    console.log(`🛣️ Roads-only mode: filtering to ${nonWaterTrails.length} roads`);
   }
   
   for (let i = 0; i < points.length; i++) {
