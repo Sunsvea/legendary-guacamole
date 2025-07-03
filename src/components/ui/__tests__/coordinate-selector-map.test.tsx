@@ -98,10 +98,23 @@ describe('CoordinateSelectorMap', () => {
     expect(mapContainer.parentElement).toHaveClass('custom-class', 'h-96');
   });
 
-  it('should display instructions when no markers are placed', () => {
+  it('should show map without overlay when no selection mode is active', () => {
     render(
       <CoordinateSelectorMap 
         onCoordinateSelect={mockOnCoordinateSelect}
+      />
+    );
+
+    const mapContainer = screen.getByTestId('coordinate-selector-map');
+    expect(mapContainer).toBeInTheDocument();
+    expect(screen.queryByText(/click "select start point" to begin/i)).not.toBeInTheDocument();
+  });
+
+  it('should display instructions when selection mode is active but no markers placed', () => {
+    render(
+      <CoordinateSelectorMap 
+        onCoordinateSelect={mockOnCoordinateSelect}
+        selectionMode="start"
       />
     );
 

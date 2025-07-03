@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { CoordinateSelectorMap } from '@/components/ui/coordinate-selector-map';
 import { MapPin, Navigation, ChevronDown } from 'lucide-react';
 import { Coordinate } from '@/types/route';
@@ -18,7 +18,6 @@ interface EnhancedRouteInputFormProps {
   loading?: boolean;
 }
 
-type InputMode = 'coordinates' | 'map';
 type SelectionType = 'start' | 'end' | null;
 
 const EXAMPLE_ROUTES = [
@@ -40,7 +39,7 @@ const EXAMPLE_ROUTES = [
 ];
 
 export function EnhancedRouteInputForm({ onRouteSubmit, loading = false }: EnhancedRouteInputFormProps) {
-  const [selectionType, setSelectionType] = useState<SelectionType>(null);
+  const [selectionType, setSelectionType] = useState<SelectionType>('start');
   
   
   const [startCoordinate, setStartCoordinate] = useState<Coordinate | undefined>();
@@ -74,10 +73,10 @@ export function EnhancedRouteInputForm({ onRouteSubmit, loading = false }: Enhan
     }
   };
 
-  const handleMapCoordinateSelect = (coordinate: Coordinate, type: 'start' | 'end') => {
+  const handleMapCoordinateSelect = useCallback((coordinate: Coordinate, type: 'start' | 'end') => {
     handleLocationSelect(coordinate, type);
     setSelectionType(null); // Clear selection mode after selecting
-  };
+  }, []);
 
   const handleStartSelection = () => {
     setSelectionType('start');
@@ -88,35 +87,6 @@ export function EnhancedRouteInputForm({ onRouteSubmit, loading = false }: Enhan
   };
 
 
-  /**
-   * Get the optimal center point for the map based on selection state
-   */
-  const getMapCenter = (): Coordinate => {
-    // If selecting end point and start point exists, center on start point
-    if (selectionType === 'end' && startCoordinate) {
-      return startCoordinate;
-    }
-    
-    // If selecting start point and end point exists, center on end point
-    if (selectionType === 'start' && endCoordinate) {
-      return endCoordinate;
-    }
-    
-    // If both points exist, center between them
-    if (startCoordinate && endCoordinate) {
-      return {
-        lat: (startCoordinate.lat + endCoordinate.lat) / 2,
-        lng: (startCoordinate.lng + endCoordinate.lng) / 2
-      };
-    }
-    
-    // If one point exists, center on it
-    if (startCoordinate) return startCoordinate;
-    if (endCoordinate) return endCoordinate;
-    
-    // Default to Switzerland center
-    return { lat: 46.8182, lng: 8.2275 };
-  };
 
   const hasStartPoint = !!startCoordinate;
   const hasEndPoint = !!endCoordinate;
@@ -133,13 +103,9 @@ export function EnhancedRouteInputForm({ onRouteSubmit, loading = false }: Enhan
         <div className="space-y-6">
           {/* Selection Instructions */}
           <div className="text-center">
-            {!selectionType ? (
-              <p className="text-gray-600">Click "Select Start Point" below, then click on the map to place your start marker</p>
-            ) : (
-              <p className="text-blue-600 font-medium">
-                {selectionType === 'start' ? 'Click on map to select start point' : 'Click on map to select end point'}
-              </p>
-            )}
+            <p className="text-blue-600 font-medium">
+              {selectionType === 'start' ? 'Click on map to select start point' : 'Click on map to select end point'}
+            </p>
           </div>
 
           {/* Selection Buttons */}
@@ -185,7 +151,6 @@ export function EnhancedRouteInputForm({ onRouteSubmit, loading = false }: Enhan
             selectionMode={selectionType}
             loading={loading}
             height="h-96"
-            center={getMapCenter()}
           />
         </div>
 
@@ -223,7 +188,7 @@ export function EnhancedRouteInputForm({ onRouteSubmit, loading = false }: Enhan
 
       <div className={STYLES.TIP_BOX}>
         <p className={STYLES.TIP_TEXT}>
-          <strong>{UI_TEXT.TIP_LABEL}</strong> Click "Select Start Point" or "Select End Point", then click on the map to place markers for your route.
+          <strong>{UI_TEXT.TIP_LABEL}</strong> Click &quot;Select Start Point&quot; or &quot;Select End Point&quot;, then click on the map to place markers for your route.
         </p>
       </div>
     </div>

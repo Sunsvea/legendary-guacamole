@@ -6,6 +6,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { Coordinate } from '@/types/route';
 import { MAPBOX_ACCESS_TOKEN } from '@/lib/mapbox-config';
 import { MapPin, Navigation } from 'lucide-react';
@@ -35,14 +36,32 @@ export function CoordinateSelectorMap({
   const map = useRef<mapboxgl.Map | null>(null);
   const startMarker = useRef<mapboxgl.Marker | null>(null);
   const endMarker = useRef<mapboxgl.Marker | null>(null);
+  const selectionModeRef = useRef<'start' | 'end' | null>(selectionMode);
+  const loadingRef = useRef<boolean>(loading);
+  const onCoordinateSelectRef = useRef(onCoordinateSelect);
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  // Initialize map
+  // Update refs when props change
+  useEffect(() => {
+    selectionModeRef.current = selectionMode;
+  }, [selectionMode]);
+
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
+
+  useEffect(() => {
+    onCoordinateSelectRef.current = onCoordinateSelect;
+  }, [onCoordinateSelect]);
+
+  // Initialize map - simplified approach
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
+    // Set access token
     mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
 
+    // Create map with basic configuration
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/outdoors-v12',
@@ -53,25 +72,32 @@ export function CoordinateSelectorMap({
 
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
+    // Simple load handler
     map.current.on('load', () => {
+      console.log('Map loaded successfully');
       setMapLoaded(true);
+    });
+
+    // Error handler
+    map.current.on('error', (e) => {
+      console.error('Map error:', e);
     });
 
     // Handle click events for coordinate selection
     map.current.on('click', (e) => {
-      if (loading || !selectionMode) return;
+      if (loadingRef.current || !selectionModeRef.current) return;
 
       const coordinate: Coordinate = {
         lat: e.lngLat.lat,
         lng: e.lngLat.lng
       };
 
-      onCoordinateSelect(coordinate, selectionMode);
+      onCoordinateSelectRef.current(coordinate, selectionModeRef.current);
     });
 
     // Change cursor on hover when in selection mode
     map.current.on('mouseenter', () => {
-      if (selectionMode && !loading) {
+      if (selectionModeRef.current && !loadingRef.current) {
         map.current!.getContainer().style.cursor = 'crosshair';
       }
     });
@@ -84,31 +110,36 @@ export function CoordinateSelectorMap({
       if (map.current) {
         map.current.remove();
         map.current = null;
+        setMapLoaded(false);
       }
     };
-  }, [loading, onCoordinateSelect, selectionMode]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Update center when it changes (without recreating map)
+  // Auto-fit map to show both markers when both exist
   useEffect(() => {
-    if (!map.current || !mapLoaded) return;
+    if (!map.current || !mapLoaded || !startCoordinate || !endCoordinate) return;
 
-    map.current.flyTo({
-      center: [center.lng, center.lat],
-      zoom: 8,
-      duration: 1000
+    const bounds = new mapboxgl.LngLatBounds();
+    bounds.extend([startCoordinate.lng, startCoordinate.lat]);
+    bounds.extend([endCoordinate.lng, endCoordinate.lat]);
+    
+    map.current.fitBounds(bounds, {
+      padding: 50,
+      maxZoom: 12
     });
-  }, [center.lat, center.lng, mapLoaded]);
+  }, [startCoordinate, endCoordinate, mapLoaded]);
 
-  // Update cursor based on selection mode
+  // Simple resize when map loads
   useEffect(() => {
-    if (!map.current) return;
-
-    if (selectionMode && !loading) {
-      map.current.getContainer().style.cursor = 'crosshair';
-    } else {
-      map.current.getContainer().style.cursor = '';
+    if (mapLoaded && map.current) {
+      setTimeout(() => {
+        if (map.current) {
+          map.current.resize();
+        }
+      }, 100);
     }
-  }, [selectionMode, loading]);
+  }, [mapLoaded]);
 
   // Update start marker
   useEffect(() => {
@@ -156,27 +187,6 @@ export function CoordinateSelectorMap({
     }
   }, [endCoordinate, mapLoaded]);
 
-  // Fit map to show both markers
-  useEffect(() => {
-    if (!map.current || !mapLoaded) return;
-
-    if (startCoordinate && endCoordinate) {
-      const bounds = new mapboxgl.LngLatBounds();
-      bounds.extend([startCoordinate.lng, startCoordinate.lat]);
-      bounds.extend([endCoordinate.lng, endCoordinate.lat]);
-      
-      map.current.fitBounds(bounds, {
-        padding: 50,
-        maxZoom: 12
-      });
-    } else if (startCoordinate || endCoordinate) {
-      const coord = startCoordinate || endCoordinate!;
-      map.current.flyTo({
-        center: [coord.lng, coord.lat],
-        zoom: 10
-      });
-    }
-  }, [startCoordinate, endCoordinate, mapLoaded]);
 
   const hasMarkers = startCoordinate || endCoordinate;
   const isDisabled = loading;
@@ -186,11 +196,12 @@ export function CoordinateSelectorMap({
       <div 
         ref={mapContainer} 
         className="w-full h-full"
+        style={{ minHeight: '384px' }}
         data-testid="coordinate-selector-map"
       />
       
-      {/* Instructions overlay */}
-      {!hasMarkers && !loading && (
+      {/* Instructions overlay when in selection mode */}
+      {selectionMode && !hasMarkers && !loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 pointer-events-none">
           <div className="bg-white px-4 py-2 rounded-lg shadow-lg text-center">
             <MapPin className="w-5 h-5 mx-auto mb-1 text-gray-600" />

@@ -2,12 +2,12 @@
  * Tests for enhanced route input form with map-only interface
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { EnhancedRouteInputForm } from '../enhanced-route-input-form';
 
 // Mock the coordinate selector map
 jest.mock('@/components/ui/coordinate-selector-map', () => ({
-  CoordinateSelectorMap: ({ onCoordinateSelect, selectionMode }: any) => (
+  CoordinateSelectorMap: ({ onCoordinateSelect, selectionMode }: { onCoordinateSelect: (coord: { lat: number; lng: number }, type: 'start' | 'end') => void; selectionMode: 'start' | 'end' | null }) => (
     <div 
       data-testid="coordinate-selector-map" 
       onClick={() => {
