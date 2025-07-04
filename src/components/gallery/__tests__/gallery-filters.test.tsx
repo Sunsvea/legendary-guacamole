@@ -12,6 +12,7 @@ describe('GalleryFilters', () => {
   const defaultFilters = {
     searchQuery: '',
     difficulty: null,
+    country: null,
     tags: [],
     sortBy: 'newest' as const,
     minDistance: null,

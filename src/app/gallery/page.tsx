@@ -9,20 +9,61 @@ import { getPublicRoutes } from '@/lib/database/routes';
 import { DatabaseRoute } from '@/types/database';
 import { GalleryLayout } from '@/components/gallery/gallery-layout';
 import { RouteGalleryGrid } from '@/components/gallery/route-gallery-grid';
-import { GalleryFilters } from '@/components/gallery/gallery-filters';
+import { GalleryFilters as GalleryFiltersComponent, GalleryFilters } from '@/components/gallery/gallery-filters';
 import { RouteDetailModal } from '@/components/gallery/route-detail-modal';
 import { STYLES } from '@/constants/styles';
 
-/**
- * Gallery filter state
- */
-interface GalleryFilters {
-  searchQuery: string;
-  difficulty: string | null;
-  tags: string[];
-  sortBy: 'newest' | 'oldest' | 'distance' | 'difficulty';
-  minDistance: number | null;
-  maxDistance: number | null;
+
+// Helper function to get country synchronously for filtering
+function getCountryFromCoordinates(coordinate: { lat: number; lng: number }): string | null {
+  const { lat, lng } = coordinate;
+  
+  // Switzerland
+  if (lat >= 45.8 && lat <= 47.8 && lng >= 5.9 && lng <= 10.5) {
+    return 'Switzerland';
+  }
+  
+  // Austria (rough bounds)
+  if (lat >= 46.4 && lat <= 49.0 && lng >= 9.5 && lng <= 17.2) {
+    return 'Austria';
+  }
+  
+  // France (simplified bounds)
+  if (lat >= 42.0 && lat <= 51.1 && lng >= -5.0 && lng <= 8.2) {
+    return 'France';
+  }
+  
+  // Italy (simplified bounds)
+  if (lat >= 36.0 && lat <= 47.1 && lng >= 6.6 && lng <= 18.8) {
+    return 'Italy';
+  }
+  
+  // Germany (simplified bounds)
+  if (lat >= 47.3 && lat <= 55.1 && lng >= 5.9 && lng <= 15.0) {
+    return 'Germany';
+  }
+  
+  // Slovenia
+  if (lat >= 45.4 && lat <= 46.9 && lng >= 13.4 && lng <= 16.6) {
+    return 'Slovenia';
+  }
+  
+  // Norway (simplified bounds)
+  if (lat >= 58.0 && lat <= 71.2 && lng >= 4.6 && lng <= 31.3) {
+    return 'Norway';
+  }
+  
+  // United Kingdom (simplified bounds)
+  if (lat >= 49.9 && lat <= 60.9 && lng >= -8.6 && lng <= 2.0) {
+    return 'United Kingdom';
+  }
+  
+  // Spain (simplified bounds)
+  if (lat >= 36.0 && lat <= 43.8 && lng >= -9.3 && lng <= 3.3) {
+    return 'Spain';
+  }
+  
+  return null;
 }
 
 /**
@@ -38,6 +79,7 @@ export default function GalleryPage() {
   const [filters, setFilters] = useState<GalleryFilters>({
     searchQuery: '',
     difficulty: null,
+    country: null,
     tags: [],
     sortBy: 'newest',
     minDistance: null,
@@ -83,6 +125,14 @@ export default function GalleryPage() {
     // Difficulty filter
     if (filters.difficulty && route.route_data.difficulty !== filters.difficulty) {
       return false;
+    }
+
+    // Country filter (synchronous detection for filtering)
+    if (filters.country) {
+      const routeCountry = getCountryFromCoordinates(route.route_data.start);
+      if (routeCountry !== filters.country) {
+        return false;
+      }
     }
 
     // Distance range filters
@@ -236,7 +286,7 @@ export default function GalleryPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Sidebar Filters */}
         <div className="lg:col-span-1">
-          <GalleryFilters 
+          <GalleryFiltersComponent 
             filters={filters}
             onFiltersChange={handleFiltersChange}
           />

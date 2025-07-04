@@ -4,10 +4,12 @@
 
 import { Search, Filter, X } from 'lucide-react';
 import { STYLES } from '@/constants/styles';
+import { getSupportedCountries } from '@/lib/utils/country-detection';
 
-interface GalleryFilters {
+export interface GalleryFilters {
   searchQuery: string;
   difficulty: string | null;
+  country: string | null;
   tags: string[];
   sortBy: 'newest' | 'oldest' | 'distance' | 'difficulty';
   minDistance: number | null;
@@ -31,6 +33,7 @@ export function GalleryFilters({ filters, onFiltersChange }: GalleryFiltersProps
     onFiltersChange({
       searchQuery: '',
       difficulty: null,
+      country: null,
       tags: [],
       sortBy: 'newest',
       minDistance: null,
@@ -79,6 +82,24 @@ export function GalleryFilters({ filters, onFiltersChange }: GalleryFiltersProps
             <option value="moderate">Moderate</option>
             <option value="hard">Hard</option>
             <option value="extreme">Extreme</option>
+          </select>
+        </div>
+
+        {/* Country Filter */}
+        <div>
+          <label htmlFor="country-select" className={STYLES.LABEL}>Country</label>
+          <select
+            id="country-select"
+            value={filters.country || ''}
+            onChange={(e) => updateFilter('country', e.target.value || null)}
+            className={`${STYLES.INPUT} text-gray-900`}
+          >
+            <option value="">All Countries</option>
+            {getSupportedCountries().map((country) => (
+              <option key={country} value={country}>
+                {country}
+              </option>
+            ))}
           </select>
         </div>
 
