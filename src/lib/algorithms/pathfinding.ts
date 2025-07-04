@@ -22,6 +22,20 @@ export async function findOptimalRoute(
   options: PathfindingOptions = DEFAULT_PATHFINDING_OPTIONS
 ): Promise<RoutePoint[]> {
   try {
+    const distance = calculateDistance(start, end);
+
+    // For short routes, use a simple direct path with elevation data
+    if (distance < 5) { // 5km threshold
+      const points = [];
+      const numPoints = Math.max(2, Math.floor(distance / 0.1)); // Add a point every 100m
+      for (let i = 0; i <= numPoints; i++) {
+        const lat = start.lat + (end.lat - start.lat) * (i / numPoints);
+        const lng = start.lng + (end.lng - start.lng) * (i / numPoints);
+        points.push({ lat, lng });
+      }
+      const elevations = await getElevation(points);
+      return points.map((p, i) => ({ ...p, elevation: elevations[i] || 0 }));
+    }
 
     // Fetch both elevation and trail data in parallel
     const [elevationPoints, trailNetwork] = await Promise.all([
@@ -51,7 +65,10 @@ export async function findOptimalRoute(
     }
 
     const startWithElevation = elevationPoints[0];
-    const endWithElevation = elevationPoints[elevationPoints.length - 1];
+    const endWithElevation: Coordinate = {
+      ...end,
+      elevation: elevationPoints.find(p => p.lat === end.lat && p.lng === end.lng)?.elevation || elevationPoints[elevationPoints.length - 1].elevation
+    };
 
     const openSet = new PriorityQueue();
     const closedSet: Coordinate[] = [];
@@ -74,9 +91,11 @@ export async function findOptimalRoute(
       const current = openSet.dequeue();
       if (!current) break;
 
-      if (calculateDistance(current.coordinate, endWithElevation) < PATHFINDING_CONSTANTS.GOAL_DISTANCE_THRESHOLD) {
-        const result = reconstructPath(current);
-        return result;
+      if (calculateDistance(current.coordinate, end) < PATHFINDING_CONSTANTS.GOAL_DISTANCE_THRESHOLD) {
+        let path = reconstructPath(current);
+        // Ensure the final point is the exact end coordinate
+        path.push({ ...end, elevation: current.coordinate.elevation || endWithElevation.elevation });
+        return path;
       }
 
       closedSet.push(current.coordinate);
@@ -104,7 +123,7 @@ export async function findOptimalRoute(
         const gCost = current.gCost + calculateMovementCost(current.coordinate, neighbor, trailNetwork, options);
 
 
-        const hCost = calculateHeuristic(neighbor, endWithElevation);
+        const hCost = calculateHeuristic(neighbor, end);
 
         if (!openSet.contains(neighbor)) {
           const neighborNode: PathfindingNode = {

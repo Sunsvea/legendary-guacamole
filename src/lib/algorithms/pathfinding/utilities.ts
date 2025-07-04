@@ -25,7 +25,7 @@ export const PATHFINDING_CONSTANTS = {
   /** Time cost scaling factor for A* algorithm */
   TIME_COST_SCALE_FACTOR: 10,
   /** Goal distance threshold for pathfinding completion */
-  GOAL_DISTANCE_THRESHOLD: 0.01,
+  GOAL_DISTANCE_THRESHOLD: 0.0002,
   /** Danger slope penalty exponent divisor */
   DANGER_SLOPE_DIVISOR: 50,
   /** Very steep terrain penalty multiplier */
