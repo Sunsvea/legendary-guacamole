@@ -67,5 +67,5 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ language 'plpgsql';
+$ language 'plpgsql' SECURITY DEFINER;
 
