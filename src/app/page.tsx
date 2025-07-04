@@ -6,10 +6,9 @@ import { EnhancedRouteInputForm } from '@/components/forms/enhanced-route-input-
 import { ElevationChart } from '@/components/ui/elevation-chart';
 import { RouteMap } from '@/components/ui/route-map';
 import { RouteSummaryCard } from '@/components/ui/semantic/route-summary-card';
-import { PathfindingControls } from '@/components/ui/pathfinding-controls';
 import { AuthModal } from '@/components/auth/auth-modal';
 import { Coordinate, Route } from '@/types/route';
-import { PathfindingOptions, DEFAULT_PATHFINDING_OPTIONS } from '@/types/pathfinding';
+import { DEFAULT_PATHFINDING_OPTIONS } from '@/types/pathfinding';
 import { findOptimalRoute } from '@/lib/algorithms/pathfinding';
 import { calculateDistance, calculateElevationGain } from '@/lib/utils';
 import { debounce, pathfindingRateLimiter } from '@/lib/utils/rate-limiter';
@@ -19,7 +18,6 @@ import { STYLES } from '@/constants/styles';
 export default function Home() {
   const [currentRoute, setCurrentRoute] = useState<Route | null>(null);
   const [loading, setLoading] = useState(false);
-  const [pathfindingOptions, setPathfindingOptions] = useState<PathfindingOptions>(DEFAULT_PATHFINDING_OPTIONS);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +31,7 @@ export default function Home() {
 
     setLoading(true);
     try {
-      const routePoints = await findOptimalRoute(start, end, pathfindingOptions);
+      const routePoints = await findOptimalRoute(start, end, DEFAULT_PATHFINDING_OPTIONS);
       
       if (routePoints.length === 0) {
         throw new Error(UI_TEXT.NO_ROUTE_FOUND);
@@ -82,7 +80,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [pathfindingOptions]);
+  }, []);
 
   // Create a debounced version for route submission using useRef
   const debouncedSubmitRef = useRef<((start: Coordinate, end: Coordinate) => void) | null>(null);
@@ -173,17 +171,10 @@ export default function Home() {
 
           <EnhancedRouteInputForm onRouteSubmit={handleRouteSubmit} loading={loading} />
 
-          <PathfindingControls 
-            options={pathfindingOptions}
-            onOptionsChange={setPathfindingOptions}
-            isCalculating={loading}
-          />
-
           {currentRoute && (
             <>
               <RouteSummaryCard 
                 route={currentRoute} 
-                pathfindingOptions={pathfindingOptions}
                 onSaveSuccess={handleSaveSuccess}
                 onSaveError={handleSaveError}
                 onAuthRequired={handleAuthRequired}
