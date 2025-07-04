@@ -92,9 +92,9 @@ export async function findOptimalRoute(
       if (!current) break;
 
       if (calculateDistance(current.coordinate, end) < PATHFINDING_CONSTANTS.GOAL_DISTANCE_THRESHOLD) {
-        let path = reconstructPath(current);
+        const path = reconstructPath(current);
         // Ensure the final point is the exact end coordinate
-        path.push({ ...end, elevation: current.coordinate.elevation || endWithElevation.elevation });
+        path.push({ ...end, elevation: current.coordinate.elevation || endWithElevation.elevation || 0 });
         return path;
       }
 
