@@ -31,6 +31,10 @@ const mockReconstructPath = reconstructPath as jest.MockedFunction<typeof recons
 describe('findOptimalRoute', () => {
   const startCoord: Coordinate = { lat: 47.6062, lng: -122.3321 };
   const endCoord: Coordinate = { lat: 47.6205, lng: -122.3493 };
+  
+  // Long distance coordinates (> 5km) for testing full pathfinding logic
+  const longStartCoord: Coordinate = { lat: 47.6062, lng: -122.3321 };
+  const longEndCoord: Coordinate = { lat: 47.7062, lng: -122.4321 };
 
   const mockElevationPoints: RoutePoint[] = [
     { lat: 47.6062, lng: -122.3321, elevation: 100 },
@@ -61,8 +65,26 @@ describe('findOptimalRoute', () => {
   });
 
   describe('successful pathfinding', () => {
-    it('should return direct trail path when available', async () => {
-      const directPath = [startCoord, { lat: 47.6134, lng: -122.3407 }, endCoord];
+    it('should use direct path for short distances (< 5km)', async () => {
+      const elevations = [100, 150, 200, 180, 190, 200, 185, 175, 165, 155, 145, 135, 125, 115, 105, 95, 85, 75, 65, 55, 45];
+
+      mockGetElevation.mockResolvedValue(elevations);
+
+      const result = await findOptimalRoute(startCoord, endCoord);
+
+      expect(result.length).toBeGreaterThan(1);
+      expect(result[0].lat).toBe(startCoord.lat);
+      expect(result[0].lng).toBe(startCoord.lng);
+      expect(result[result.length - 1].lat).toBe(endCoord.lat);
+      expect(result[result.length - 1].lng).toBe(endCoord.lng);
+      expect(mockGetElevation).toHaveBeenCalled();
+      // For short distances, getElevationForRoute and fetchTrailData should NOT be called
+      expect(mockGetElevationForRoute).not.toHaveBeenCalled();
+      expect(mockFetchTrailData).not.toHaveBeenCalled();
+    });
+
+    it('should return direct trail path when available for long distances', async () => {
+      const directPath = [longStartCoord, { lat: 47.6534, lng: -122.3807 }, longEndCoord];
       const elevations = [100, 150, 200];
 
       mockGetElevationForRoute.mockResolvedValue(mockElevationPoints);
@@ -70,29 +92,29 @@ describe('findOptimalRoute', () => {
       mockFindDirectTrailPath.mockReturnValue(directPath);
       mockGetElevation.mockResolvedValue(elevations);
 
-      const result = await findOptimalRoute(startCoord, endCoord);
+      const result = await findOptimalRoute(longStartCoord, longEndCoord);
 
       expect(result).toHaveLength(3);
-      expect(result[0]).toEqual({ ...startCoord, elevation: 100 });
-      expect(result[2]).toEqual({ ...endCoord, elevation: 200 });
-      expect(mockFindDirectTrailPath).toHaveBeenCalledWith(startCoord, endCoord, mockTrailNetwork.trails);
+      expect(result[0]).toEqual({ ...directPath[0], elevation: 100 });
+      expect(result[2]).toEqual({ ...directPath[2], elevation: 200 });
+      expect(mockFindDirectTrailPath).toHaveBeenCalledWith(longStartCoord, longEndCoord, mockTrailNetwork.trails);
     });
 
-    it('should fall back to A* pathfinding when no direct trail path', async () => {
+    it('should fall back to A* pathfinding when no direct trail path for long distances', async () => {
       mockGetElevationForRoute.mockResolvedValue(mockElevationPoints);
       mockFetchTrailData.mockResolvedValue(mockTrailNetwork);
       mockFindDirectTrailPath.mockReturnValue(null);
-      mockGenerateNeighbors.mockReturnValue([endCoord]);
+      mockGenerateNeighbors.mockReturnValue([longEndCoord]);
 
-      const result = await findOptimalRoute(startCoord, endCoord);
+      const result = await findOptimalRoute(longStartCoord, longEndCoord);
 
-      expect(mockGetElevationForRoute).toHaveBeenCalledWith(startCoord, endCoord, 0.005);
-      expect(mockFetchTrailData).toHaveBeenCalledWith(startCoord, endCoord);
+      expect(mockGetElevationForRoute).toHaveBeenCalledWith(longStartCoord, longEndCoord, 0.005);
+      expect(mockFetchTrailData).toHaveBeenCalledWith(longStartCoord, longEndCoord);
       expect(result).toBeDefined();
       expect(result).toEqual(mockElevationPoints);
     });
 
-    it('should use custom pathfinding options', async () => {
+    it('should use custom pathfinding options for long distances', async () => {
       const customOptions: PathfindingOptions = {
         ...DEFAULT_PATHFINDING_OPTIONS,
         maxIterations: 500,
@@ -103,7 +125,7 @@ describe('findOptimalRoute', () => {
       mockFetchTrailData.mockResolvedValue(mockTrailNetwork);
       mockFindDirectTrailPath.mockReturnValue(null);
 
-      await findOptimalRoute(startCoord, endCoord, customOptions);
+      await findOptimalRoute(longStartCoord, longEndCoord, customOptions);
 
       expect(mockGetElevationForRoute).toHaveBeenCalled();
       expect(mockFetchTrailData).toHaveBeenCalled();
@@ -111,81 +133,92 @@ describe('findOptimalRoute', () => {
   });
 
   describe('error handling', () => {
-    it('should handle elevation data fetch failure', async () => {
+    it('should handle elevation data fetch failure for long distances', async () => {
       mockGetElevationForRoute
         .mockRejectedValueOnce(new Error('Elevation API error'))
         .mockResolvedValueOnce(mockElevationPoints);
       mockFetchTrailData.mockResolvedValue(mockTrailNetwork);
       mockOptimizeRouteWithTrails.mockResolvedValue(mockElevationPoints);
 
-      const result = await findOptimalRoute(startCoord, endCoord);
+      const result = await findOptimalRoute(longStartCoord, longEndCoord);
 
       expect(mockOptimizeRouteWithTrails).toHaveBeenCalled();
       expect(result).toEqual(mockElevationPoints);
     });
 
-    it('should handle trail data fetch failure', async () => {
+    it('should handle trail data fetch failure for long distances', async () => {
+      mockGetElevationForRoute.mockResolvedValue(mockElevationPoints);
+      mockFetchTrailData.mockRejectedValue(new Error('Trail API error'));
+
+      const result = await findOptimalRoute(longStartCoord, longEndCoord);
+
+      expect(result).toBeDefined();
+    });
+
+    it('should handle direct path elevation fetch failure for short distances', async () => {
+      mockGetElevation.mockRejectedValue(new Error('Elevation fetch failed'));
       mockGetElevationForRoute.mockResolvedValue(mockElevationPoints);
       mockFetchTrailData.mockRejectedValue(new Error('Trail API error'));
 
       const result = await findOptimalRoute(startCoord, endCoord);
 
-      expect(result).toBeDefined();
+      expect(result.length).toBeGreaterThan(1);
+      expect(result[0]).toEqual({ lat: 47.6062, lng: -122.3321, elevation: 100 });
     });
 
-    it('should return basic route when all fallbacks fail', async () => {
+    it('should return basic route when all fallbacks fail for long distances', async () => {
       mockGetElevationForRoute
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce(mockElevationPoints);
       mockFetchTrailData.mockRejectedValue(new Error('Trail API error'));
 
-      const result = await findOptimalRoute(startCoord, endCoord);
+      const result = await findOptimalRoute(longStartCoord, longEndCoord);
 
-      expect(result).toHaveLength(3);
+      expect(result.length).toBeGreaterThanOrEqual(3);
       expect(result[0]).toEqual({ lat: 47.6062, lng: -122.3321, elevation: 100 });
     });
 
-    it('should handle direct path elevation fetch failure', async () => {
-      const directPath = [startCoord, endCoord, { lat: 47.6134, lng: -122.3407 }];
+    it('should handle direct path elevation fetch failure for long distances', async () => {
+      const directPath = [longStartCoord, longEndCoord, { lat: 47.6534, lng: -122.3807 }];
 
       mockGetElevationForRoute.mockResolvedValue(mockElevationPoints);
       mockFetchTrailData.mockResolvedValue(mockTrailNetwork);
       mockFindDirectTrailPath.mockReturnValue(directPath);
       mockGetElevation.mockRejectedValue(new Error('Elevation fetch failed'));
-      mockGenerateNeighbors.mockReturnValue([endCoord]);
+      mockGenerateNeighbors.mockReturnValue([longEndCoord]);
 
-      const result = await findOptimalRoute(startCoord, endCoord);
+      const result = await findOptimalRoute(longStartCoord, longEndCoord);
 
       expect(result).toBeDefined();
     });
   });
 
   describe('performance and optimization', () => {
-    it('should handle empty elevation points', async () => {
+    it('should handle empty elevation points for long distances', async () => {
       mockGetElevationForRoute
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce(mockElevationPoints);
       mockFetchTrailData.mockResolvedValue(mockTrailNetwork);
       mockOptimizeRouteWithTrails.mockResolvedValue(mockElevationPoints);
 
-      const result = await findOptimalRoute(startCoord, endCoord);
+      const result = await findOptimalRoute(longStartCoord, longEndCoord);
 
       expect(result).toEqual(mockElevationPoints);
     });
 
-    it('should use trail optimization for fallback routes', async () => {
-      mockGetElevationForRoute.mockResolvedValue(mockElevationPoints);
+    it('should use trail optimization for fallback routes for long distances', async () => {
+      mockGetElevationForRoute.mockResolvedValue([]);
       mockFetchTrailData.mockResolvedValue(mockTrailNetwork);
       mockFindDirectTrailPath.mockReturnValue(null);
       mockOptimizeRouteWithTrails.mockResolvedValue(mockElevationPoints);
 
-      await findOptimalRoute(startCoord, endCoord, {
+      await findOptimalRoute(longStartCoord, longEndCoord, {
         ...DEFAULT_PATHFINDING_OPTIONS,
         maxIterations: 1
       });
 
       expect(mockOptimizeRouteWithTrails).toHaveBeenCalledWith(
-        mockElevationPoints,
+        [],
         mockTrailNetwork.trails,
         expect.any(Object)
       );
@@ -193,9 +226,9 @@ describe('findOptimalRoute', () => {
   });
 
   describe('data validation', () => {
-    it('should handle coordinates with different precision', async () => {
+    it('should handle coordinates with different precision for long distances', async () => {
       const preciseStart = { lat: 47.606200001, lng: -122.332100001 };
-      const preciseEnd = { lat: 47.620500001, lng: -122.349300001 };
+      const preciseEnd = { lat: 47.706200001, lng: -122.432100001 };
 
       mockGetElevationForRoute.mockResolvedValue(mockElevationPoints);
       mockFetchTrailData.mockResolvedValue(mockTrailNetwork);
