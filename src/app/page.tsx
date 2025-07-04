@@ -175,6 +175,7 @@ export default function Home() {
             <>
               <RouteSummaryCard 
                 route={currentRoute} 
+                pathfindingOptions={DEFAULT_PATHFINDING_OPTIONS}
                 onSaveSuccess={handleSaveSuccess}
                 onSaveError={handleSaveError}
                 onAuthRequired={handleAuthRequired}
