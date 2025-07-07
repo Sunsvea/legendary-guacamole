@@ -16,6 +16,7 @@ export interface SavedRoute {
   pathfinding_options: PathfindingOptions;
   is_public: boolean;
   tags: string[];
+  country: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -80,6 +81,7 @@ export const DEFAULT_USER_PREFERENCES: Omit<UserPreferences, 'user_id' | 'create
  * @param pathfindingOptions Pathfinding options used
  * @param isPublic Whether route should be public
  * @param tags Optional tags for the route
+ * @param country Optional country (will be detected if not provided)
  * @returns DatabaseRoute ready for storage
  */
 export function toDatabaseRoute(
@@ -87,7 +89,8 @@ export function toDatabaseRoute(
   userId: string,
   pathfindingOptions: PathfindingOptions,
   isPublic: boolean = false,
-  tags: string[] = []
+  tags: string[] = [],
+  country: string | null = null
 ): DatabaseRoute {
   const now = new Date().toISOString();
   
@@ -99,6 +102,7 @@ export function toDatabaseRoute(
     pathfinding_options: pathfindingOptions,
     is_public: isPublic,
     tags,
+    country,
     created_at: now,
     updated_at: now
   };

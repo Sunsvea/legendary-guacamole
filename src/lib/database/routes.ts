@@ -6,6 +6,7 @@ import { getSupabaseClient } from '../supabase';
 import { Route } from '../../types/route';
 import { DatabaseRoute, toDatabaseRoute } from '../../types/database';
 import { PathfindingOptions } from '../../types/pathfinding';
+import { detectCountryFromCoordinate } from '../utils/country-detection';
 
 /**
  * Result wrapper for route operations
@@ -51,7 +52,16 @@ export async function saveRoute(
 ): Promise<RouteOperationResult> {
   try {
     const supabase = getSupabaseClient();
-    const dbRoute = toDatabaseRoute(route, userId, pathfindingOptions, isPublic, tags);
+    
+    // Detect country from route start coordinates
+    let country: string | null = null;
+    try {
+      country = await detectCountryFromCoordinate(route.start);
+    } catch (countryError) {
+      console.warn('Failed to detect country for route, will save without country:', countryError);
+    }
+    
+    const dbRoute = toDatabaseRoute(route, userId, pathfindingOptions, isPublic, tags, country);
 
     const { data, error } = await supabase
       .from('routes')

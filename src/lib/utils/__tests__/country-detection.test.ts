@@ -83,12 +83,18 @@ describe('Country Detection', () => {
       const countries = getSupportedCountries();
       expect(countries).toEqual([
         'Austria',
+        'Belgium',
+        'Czech Republic',
+        'Finland',
         'France',
         'Germany',
         'Italy',
+        'Netherlands',
         'Norway',
+        'Poland',
         'Slovenia',
         'Spain',
+        'Sweden',
         'Switzerland',
         'United Kingdom'
       ]);

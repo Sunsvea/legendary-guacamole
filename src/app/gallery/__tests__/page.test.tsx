@@ -23,6 +23,12 @@ jest.mock('@/contexts/auth-context', () => ({
   useAuth: () => mockUseAuth(),
 }));
 
+// Mock country detection
+jest.mock('@/lib/utils/country-detection', () => ({
+  detectCountryFromCoordinate: jest.fn().mockResolvedValue('Switzerland'),
+  getSupportedCountries: jest.fn().mockReturnValue(['Austria', 'France', 'Germany', 'Italy', 'Switzerland']),
+}));
+
 // Mock components we'll create
 jest.mock('@/components/gallery/gallery-layout', () => ({
   GalleryLayout: ({ children }: { children: React.ReactNode }) => (
@@ -88,9 +94,12 @@ const mockRoutes = [
       difficulty: 'moderate',
       distance: 5.2,
       elevationGain: 800,
+      start: { lat: 47.3769, lng: 8.5417 },
+      end: { lat: 47.3800, lng: 8.5500 },
     },
     user_id: 'other-user',
     is_public: true,
+    tags: ['hiking', 'alpine'],
     created_at: '2025-01-01T10:00:00Z',
   },
   {
@@ -100,9 +109,12 @@ const mockRoutes = [
       difficulty: 'hard',
       distance: 8.1,
       elevationGain: 1200,
+      start: { lat: 48.2082, lng: 16.3738 },
+      end: { lat: 48.2100, lng: 16.3800 },
     },
     user_id: 'another-user',
     is_public: true,
+    tags: ['mountaineering', 'challenging'],
     created_at: '2025-01-02T10:00:00Z',
   },
 ];

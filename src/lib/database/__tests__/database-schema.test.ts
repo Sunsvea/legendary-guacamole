@@ -18,6 +18,11 @@ jest.mock('../../supabase', () => ({
   getSupabaseClient: () => mockSupabaseClient,
 }));
 
+// Mock country detection
+jest.mock('../../utils/country-detection', () => ({
+  detectCountryFromCoordinate: jest.fn().mockResolvedValue('Switzerland'),
+}));
+
 import { getSupabaseClient } from '../../supabase';
 import { saveRoute, getUserRoutes } from '../routes';
 import { Route } from '../../../types/route';
@@ -58,6 +63,7 @@ describe('Database Schema and RLS Integration', () => {
           pathfinding_options: DEFAULT_PATHFINDING_OPTIONS,
           is_public: false,
           tags: [],
+          country: 'Switzerland',
           created_at: '2025-01-01T10:00:00Z',
           updated_at: '2025-01-01T10:00:00Z'
         },
@@ -88,7 +94,8 @@ describe('Database Schema and RLS Integration', () => {
           route_data: mockRoute,
           pathfinding_options: DEFAULT_PATHFINDING_OPTIONS,
           is_public: false,
-          tags: []
+          tags: [],
+          country: 'Switzerland'
         })
       );
     });
@@ -119,6 +126,7 @@ describe('Database Schema and RLS Integration', () => {
       // Check optional fields have proper defaults
       expect(dbRoute.is_public).toBe(false);
       expect(dbRoute.tags).toEqual([]);
+      expect(dbRoute.country).toBeNull(); // Default value when not provided
       expect(dbRoute.created_at).toBeDefined();
       expect(dbRoute.updated_at).toBeDefined();
     });

@@ -11,6 +11,11 @@ jest.mock('../../supabase', () => ({
   getSupabaseClient: () => mockSupabaseClient,
 }));
 
+// Mock country detection
+jest.mock('../../utils/country-detection', () => ({
+  detectCountryFromCoordinate: jest.fn().mockResolvedValue('Switzerland'),
+}));
+
 import { 
   saveRoute, 
   getUserRoutes, 
