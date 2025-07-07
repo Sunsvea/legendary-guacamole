@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { GalleryFilters } from '../gallery-filters';
 import type { GalleryFilters as GalleryFiltersType } from '../gallery-filters';
 
@@ -19,7 +20,7 @@ describe('GalleryFilters - Country Filter', () => {
     mockOnFiltersChange.mockClear();
   });
 
-  it('should render country filter dropdown', () => {
+  it('should render country filter autocomplete', () => {
     render(
       <GalleryFilters
         filters={defaultFilters}
@@ -27,12 +28,15 @@ describe('GalleryFilters - Country Filter', () => {
       />
     );
 
-    const countrySelect = screen.getByLabelText('Country');
-    expect(countrySelect).toBeInTheDocument();
-    expect(countrySelect).toHaveValue('');
+    const countryInput = screen.getByLabelText('Country');
+    expect(countryInput).toBeInTheDocument();
+    expect(countryInput).toHaveValue('');
+    expect(countryInput).toHaveAttribute('placeholder', 'Search countries...');
   });
 
-  it('should show All Countries as default option', () => {
+  it('should show autocomplete dropdown when input is focused', async () => {
+    const user = userEvent.setup();
+    
     render(
       <GalleryFilters
         filters={defaultFilters}
@@ -40,11 +44,15 @@ describe('GalleryFilters - Country Filter', () => {
       />
     );
 
-    const allCountriesOption = screen.getByText('All Countries');
-    expect(allCountriesOption).toBeInTheDocument();
+    const countryInput = screen.getByLabelText('Country');
+    await user.click(countryInput);
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
   });
 
-  it('should show supported countries in the dropdown', () => {
+  it('should filter countries based on input', async () => {
+    const user = userEvent.setup();
+    
     render(
       <GalleryFilters
         filters={defaultFilters}
@@ -52,14 +60,17 @@ describe('GalleryFilters - Country Filter', () => {
       />
     );
 
-    // Check for some key countries
+    const countryInput = screen.getByLabelText('Country');
+    await user.click(countryInput);
+    await user.type(countryInput, 'swit');
+
     expect(screen.getByText('Switzerland')).toBeInTheDocument();
-    expect(screen.getByText('Austria')).toBeInTheDocument();
-    expect(screen.getByText('France')).toBeInTheDocument();
-    expect(screen.getByText('Italy')).toBeInTheDocument();
+    expect(screen.queryByText('France')).not.toBeInTheDocument();
   });
 
-  it('should call onFiltersChange when country is selected', () => {
+  it('should call onFiltersChange when country is selected', async () => {
+    const user = userEvent.setup();
+    
     render(
       <GalleryFilters
         filters={defaultFilters}
@@ -67,8 +78,12 @@ describe('GalleryFilters - Country Filter', () => {
       />
     );
 
-    const countrySelect = screen.getByLabelText('Country');
-    fireEvent.change(countrySelect, { target: { value: 'Switzerland' } });
+    const countryInput = screen.getByLabelText('Country');
+    await user.click(countryInput);
+    await user.type(countryInput, 'swit');
+    
+    const switzerlandOption = screen.getByText('Switzerland');
+    await user.click(switzerlandOption);
 
     expect(mockOnFiltersChange).toHaveBeenCalledWith({
       ...defaultFilters,
@@ -76,7 +91,8 @@ describe('GalleryFilters - Country Filter', () => {
     });
   });
 
-  it('should call onFiltersChange with null when All Countries is selected', () => {
+  it('should call onFiltersChange with null when input is cleared', async () => {
+    const user = userEvent.setup();
     const filtersWithCountry: GalleryFiltersType = {
       ...defaultFilters,
       country: 'Switzerland',
@@ -89,8 +105,8 @@ describe('GalleryFilters - Country Filter', () => {
       />
     );
 
-    const countrySelect = screen.getByLabelText('Country');
-    fireEvent.change(countrySelect, { target: { value: '' } });
+    const clearButton = screen.getByTitle('Clear selection');
+    await user.click(clearButton);
 
     expect(mockOnFiltersChange).toHaveBeenCalledWith({
       ...filtersWithCountry,
@@ -98,7 +114,7 @@ describe('GalleryFilters - Country Filter', () => {
     });
   });
 
-  it('should display selected country in dropdown', () => {
+  it('should display selected country in input', () => {
     const filtersWithCountry: GalleryFiltersType = {
       ...defaultFilters,
       country: 'Switzerland',
@@ -111,8 +127,8 @@ describe('GalleryFilters - Country Filter', () => {
       />
     );
 
-    const countrySelect = screen.getByLabelText('Country');
-    expect(countrySelect).toHaveValue('Switzerland');
+    const countryInput = screen.getByLabelText('Country');
+    expect(countryInput).toHaveValue('Switzerland');
   });
 
   it('should reset country filter when clear filters is clicked', () => {

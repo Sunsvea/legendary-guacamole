@@ -11,22 +11,13 @@ import { DatabaseRoute } from '@/types/database';
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout';
 import { RouteGrid } from '@/components/dashboard/route-grid';
 import { RouteStatsummary } from '@/components/dashboard/route-stats-summary';
-import { RouteSearchFilters } from '@/components/dashboard/route-search-filters';
+import { RouteSearchFilters, RouteFilters } from '@/components/dashboard/route-search-filters';
 import { RouteEmptyState } from '@/components/dashboard/route-empty-state';
 import { AuthModal } from '@/components/auth/auth-modal';
 import { RouteDetailModal } from '@/components/gallery/route-detail-modal';
 import { UI_TEXT } from '@/constants/ui-text';
 import { STYLES } from '@/constants/styles';
 
-/**
- * Search and filter state for routes
- */
-interface RouteFilters {
-  searchQuery: string;
-  difficulty: string | null;
-  isPublic: boolean | null;
-  sortBy: 'newest' | 'oldest' | 'distance' | 'difficulty';
-}
 
 /**
  * Dashboard page component
@@ -41,6 +32,7 @@ export default function DashboardPage() {
   const [filters, setFilters] = useState<RouteFilters>({
     searchQuery: '',
     difficulty: null,
+    country: null,
     isPublic: null,
     sortBy: 'newest'
   });
@@ -86,6 +78,13 @@ export default function DashboardPage() {
     // Difficulty filter
     if (filters.difficulty && route.route_data.difficulty !== filters.difficulty) {
       return false;
+    }
+
+    // Country filter
+    if (filters.country) {
+      if (route.country !== filters.country) {
+        return false;
+      }
     }
 
     // Privacy filter

@@ -4,7 +4,7 @@
 
 import { Search, Filter, X } from 'lucide-react';
 import { STYLES } from '@/constants/styles';
-import { getSupportedCountries } from '@/lib/utils/country-detection';
+import { CountryAutocomplete } from '@/components/ui/country-autocomplete';
 
 export interface GalleryFilters {
   searchQuery: string;
@@ -63,6 +63,11 @@ export function GalleryFilters({ filters, onFiltersChange }: GalleryFiltersProps
               type="text"
               value={filters.searchQuery}
               onChange={(e) => updateFilter('searchQuery', e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
               placeholder="Search routes..."
               className={`${STYLES.INPUT} pl-10 text-gray-900 placeholder-gray-500`}
             />
@@ -86,22 +91,13 @@ export function GalleryFilters({ filters, onFiltersChange }: GalleryFiltersProps
         </div>
 
         {/* Country Filter */}
-        <div>
-          <label htmlFor="country-select" className={STYLES.LABEL}>Country</label>
-          <select
-            id="country-select"
-            value={filters.country || ''}
-            onChange={(e) => updateFilter('country', e.target.value || null)}
-            className={`${STYLES.INPUT} text-gray-900`}
-          >
-            <option value="">All Countries</option>
-            {getSupportedCountries().map((country) => (
-              <option key={country} value={country}>
-                {country}
-              </option>
-            ))}
-          </select>
-        </div>
+        <CountryAutocomplete
+          value={filters.country}
+          onChange={(country) => updateFilter('country', country)}
+          placeholder="Search countries..."
+          label="Country"
+          id="country-filter"
+        />
 
         {/* Distance Range */}
         <div>
@@ -113,6 +109,11 @@ export function GalleryFilters({ filters, onFiltersChange }: GalleryFiltersProps
               step="0.1"
               value={filters.minDistance || ''}
               onChange={(e) => handleDistanceChange('minDistance', e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
               placeholder="Min"
               aria-label="Min Distance (km)"
               className={`${STYLES.INPUT} text-gray-900 placeholder-gray-500`}
@@ -123,6 +124,11 @@ export function GalleryFilters({ filters, onFiltersChange }: GalleryFiltersProps
               step="0.1"
               value={filters.maxDistance || ''}
               onChange={(e) => handleDistanceChange('maxDistance', e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
               placeholder="Max"
               aria-label="Max Distance (km)"
               className={`${STYLES.INPUT} text-gray-900 placeholder-gray-500`}

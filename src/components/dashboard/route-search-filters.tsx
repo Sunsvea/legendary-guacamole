@@ -4,10 +4,12 @@
 
 import { Search, Filter } from 'lucide-react';
 import { STYLES } from '@/constants/styles';
+import { CountryAutocomplete } from '@/components/ui/country-autocomplete';
 
-interface RouteFilters {
+export interface RouteFilters {
   searchQuery: string;
   difficulty: string | null;
+  country: string | null;
   isPublic: boolean | null;
   sortBy: 'newest' | 'oldest' | 'distance' | 'difficulty';
 }
@@ -63,6 +65,15 @@ export function RouteSearchFilters({ filters, onFiltersChange }: RouteSearchFilt
             <option value="extreme">Extreme</option>
           </select>
         </div>
+
+        {/* Country Filter */}
+        <CountryAutocomplete
+          value={filters.country}
+          onChange={(country) => updateFilter('country', country)}
+          placeholder="Search countries..."
+          label="Country"
+          id="dashboard-country-filter"
+        />
 
         {/* Privacy Filter */}
         <div>
