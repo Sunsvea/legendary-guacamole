@@ -10,7 +10,6 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "migrate:countries": "tsx scripts/migrate-route-countries.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.2",

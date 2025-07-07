@@ -17,62 +17,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    try {
-      // Note: In a server environment, we would use the actual MCP tool
-      // For this implementation, we'll use our enhanced fallback
-      // TODO: Replace with actual MCP tool integration when available in server context
-      
-      const country = getCountryFromCoordinatesSync({ lat: latitude, lng: longitude });
-      
-      if (country) {
-        const response = {
-          type: "FeatureCollection",
-          features: [{
-            type: "Feature",
-            properties: {
-              name: country,
-              feature_type: "country"
-            },
-            geometry: {
-              type: "Point",
-              coordinates: [longitude, latitude]
-            }
-          }]
-        };
-        
-        return NextResponse.json(response);
-      }
-    } catch (mapboxError) {
-      console.warn('Mapbox MCP tool failed, using fallback:', mapboxError);
-      
-      // Fallback to coordinate-based detection
-      const country = getCountryFromCoordinatesSync({ lat: latitude, lng: longitude });
-      
-      if (country) {
-        const response = {
-          type: "FeatureCollection",
-          features: [{
-            type: "Feature",
-            properties: {
-              name: country,
-              feature_type: "country"
-            },
-            geometry: {
-              type: "Point",
-              coordinates: [longitude, latitude]
-            }
-          }]
-        };
-        
-        return NextResponse.json(response);
-      }
+    // Use coordinate-based country detection for now
+    // In the future, this could be enhanced with proper Mapbox integration
+    const country = getCountryFromCoordinatesSync({ lat: latitude, lng: longitude });
+    
+    if (country) {
+      return NextResponse.json({ country });
     }
 
     // Return empty result if no country found
-    return NextResponse.json({
-      type: "FeatureCollection",
-      features: []
-    });
+    return NextResponse.json({ country: null });
 
   } catch (error) {
     console.error('Reverse geocoding API error:', error);
